@@ -1,3 +1,11 @@
 <resources>
+
     <string name="app_name">e-Passport Reader</string>
+
+    <string name="input_passport_number">Passport number</string>
+    <string name="input_expiration_date">Expiration date</string>
+    <string name="input_date_of_birth">Date of birth</string>
+
+    <string name="info_scan_passport">Enter details and place your phone on top of the passport</string>
+
 </resources>
