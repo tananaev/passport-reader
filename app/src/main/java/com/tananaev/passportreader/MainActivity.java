@@ -21,6 +21,7 @@ import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
@@ -36,6 +37,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import net.sf.scuba.smartcards.CardFileInputStream;
 import net.sf.scuba.smartcards.CardService;
@@ -46,15 +48,22 @@ import org.jmrtd.PassportService;
 import org.jmrtd.lds.COMFile;
 import org.jmrtd.lds.DG1File;
 import org.jmrtd.lds.DG2File;
+import org.jmrtd.lds.FaceImageInfo;
+import org.jmrtd.lds.FaceInfo;
 import org.jmrtd.lds.LDS;
 import org.jmrtd.lds.MRZInfo;
 import org.jmrtd.lds.SODFile;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.InputStream;
 import java.security.Security;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
@@ -241,6 +250,8 @@ public class MainActivity extends AppCompatActivity {
         private DG1File dg1File;
         private DG2File dg2File;
 
+        private Bitmap bitmap;
+
         @Override
         protected Boolean doInBackground(Void... params) {
             try {
@@ -273,6 +284,26 @@ public class MainActivity extends AppCompatActivity {
                 lds.add(PassportService.EF_DG2, dg2In, dg2In.getLength());
                 dg2File = lds.getDG2File();
 
+                List<FaceImageInfo> allFaceImageInfos = new ArrayList<>();
+                List<FaceInfo> faceInfos = dg2File.getFaceInfos();
+                for (FaceInfo faceInfo : faceInfos) {
+                    allFaceImageInfos.addAll(faceInfo.getFaceImageInfos());
+                }
+
+                if (!allFaceImageInfos.isEmpty()) {
+                    FaceImageInfo faceImageInfo = allFaceImageInfos.iterator().next();
+
+                    int imageLength = faceImageInfo.getImageLength();
+                    DataInputStream dataInputStream = new DataInputStream(faceImageInfo.getImageInputStream());
+                    byte[] buffer = new byte[imageLength];
+                    dataInputStream.readFully(buffer, 0, imageLength);
+                    InputStream inputStream = new ByteArrayInputStream(buffer, 0, imageLength);
+
+                    bitmap = ImageUtil.decodeImage(
+                            MainActivity.this, faceImageInfo.getMimeType(), inputStream);
+
+                }
+
             } catch (Exception e) {
                 return false;
             }
@@ -285,6 +316,8 @@ public class MainActivity extends AppCompatActivity {
             loadingLayout.setVisibility(View.GONE);
 
             if (result) {
+
+                ((ImageView) findViewById(R.id.image_view)).setImageBitmap(bitmap);
 
                 MRZInfo mrzInfo = dg1File.getMRZInfo();
                 /*documentNumberW.setText(mrzInfo.getDocumentNumber());
