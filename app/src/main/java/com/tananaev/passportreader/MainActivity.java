@@ -45,9 +45,12 @@ import org.jmrtd.BACKeySpec;
 import org.jmrtd.PassportService;
 import org.jmrtd.lds.COMFile;
 import org.jmrtd.lds.DG1File;
+import org.jmrtd.lds.DG2File;
 import org.jmrtd.lds.LDS;
+import org.jmrtd.lds.MRZInfo;
 import org.jmrtd.lds.SODFile;
 
+import java.security.Security;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -57,6 +60,10 @@ import java.util.Locale;
 import java.util.TreeSet;
 
 public class MainActivity extends AppCompatActivity {
+
+    static {
+        Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
+    }
 
     private final static String KEY_PASSPORT_NUMBER = "passportNumber";
     private final static String KEY_EXPIRATION_DATE = "expirationDate";
@@ -204,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
                 if (passportNumber != null && !passportNumber.isEmpty()
                         && expirationDate != null && !expirationDate.isEmpty()
                         && birthDate != null && !birthDate.isEmpty()) {
-                    BACKeySpec bacKey = new BACKey(passportNumber, expirationDate, birthDate);
+                    BACKeySpec bacKey = new BACKey(passportNumber, birthDate, expirationDate);
                     new ReadTask(IsoDep.get(tag), bacKey).execute();
                 } else {
                     Snackbar.make(passportNumberView, R.string.error_input, Snackbar.LENGTH_SHORT).show();
@@ -223,6 +230,11 @@ public class MainActivity extends AppCompatActivity {
             this.bacKey = bacKey;
         }
 
+        private COMFile comFile;
+        private SODFile sodFile;
+        private DG1File dg1File;
+        private DG2File dg2File;
+
         @Override
         protected Boolean doInBackground(Void... params) {
             try {
@@ -239,24 +251,24 @@ public class MainActivity extends AppCompatActivity {
 
                 LDS lds = new LDS();
 
-                Collection<Integer> dgNumbersAlreadyRead = new TreeSet<Integer>();
-
                 CardFileInputStream comIn = service.getInputStream(PassportService.EF_COM);
                 lds.add(PassportService.EF_COM, comIn, comIn.getLength());
-                COMFile comFile = lds.getCOMFile();
+                comFile = lds.getCOMFile();
 
                 CardFileInputStream sodIn = service.getInputStream(PassportService.EF_SOD);
                 lds.add(PassportService.EF_SOD, sodIn, sodIn.getLength());
-                SODFile sodFile = lds.getSODFile();
+                sodFile = lds.getSODFile();
 
                 CardFileInputStream dg1In = service.getInputStream(PassportService.EF_DG1);
                 lds.add(PassportService.EF_DG1, dg1In, dg1In.getLength());
-                DG1File dg1File = lds.getDG1File();
-                dgNumbersAlreadyRead.add(1);
+                dg1File = lds.getDG1File();
+
+                CardFileInputStream dg2In = service.getInputStream(PassportService.EF_DG2);
+                lds.add(PassportService.EF_DG2, dg2In, dg2In.getLength());
+                dg2File = lds.getDG2File();
 
             } catch (Exception e) {
                 return false;
-
             }
             return true;
         }
@@ -264,9 +276,23 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Boolean result) {
             if (result) {
-                Snackbar.make(passportNumberView, R.string.error_read, Snackbar.LENGTH_SHORT).show();
+
+                MRZInfo mrzInfo = dg1File.getMRZInfo();
+                /*documentNumberW.setText(mrzInfo.getDocumentNumber());
+                personalNumberW.setText(mrzInfo.getPersonalNumber());
+                issuingStateW.setText(mrzInfo.getIssuingState());
+                primaryIdentifierW.setText(mrzInfo.getPrimaryIdentifier().replace("<", " ").trim());
+                secondaryIdentifiersW.setText(mrzInfo.getSecondaryIdentifier().replace("<", " ").trim());
+                genderW.setText(mrzInfo.getGender().toString());
+                nationalityW.setText(mrzInfo.getNationality());
+                dobW.setText(mrzInfo.getDateOfBirth());
+                doeW.setText(mrzInfo.getDateOfExpiry());*/
+
+                // TODO
+
+
             } else {
-                Snackbar.make(passportNumberView, "success", Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(passportNumberView, R.string.error_read, Snackbar.LENGTH_SHORT).show();
             }
         }
 
