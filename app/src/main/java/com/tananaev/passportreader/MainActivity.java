@@ -55,9 +55,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Locale;
-import java.util.TreeSet;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -118,9 +116,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    EditText passportNumberView;
-    EditText expirationDateView;
-    EditText birthDateView;
+    private EditText passportNumberView;
+    private EditText expirationDateView;
+    private EditText birthDateView;
+
+    private View mainLayout;
+    private View loadingLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,6 +133,9 @@ public class MainActivity extends AppCompatActivity {
         passportNumberView = (EditText) findViewById(R.id.input_passport_number);
         expirationDateView = (EditText) findViewById(R.id.input_expiration_date);
         birthDateView = (EditText) findViewById(R.id.input_date_of_birth);
+
+        mainLayout = findViewById(R.id.main_layout);
+        loadingLayout = findViewById(R.id.loading_layout);
 
         passportNumberView.setText(preferences.getString(KEY_PASSPORT_NUMBER, null));
         expirationDateView.setText(preferences.getString(KEY_EXPIRATION_DATE, null));
@@ -213,6 +217,8 @@ public class MainActivity extends AppCompatActivity {
                         && birthDate != null && !birthDate.isEmpty()) {
                     BACKeySpec bacKey = new BACKey(passportNumber, birthDate, expirationDate);
                     new ReadTask(IsoDep.get(tag), bacKey).execute();
+                    mainLayout.setVisibility(View.GONE);
+                    loadingLayout.setVisibility(View.VISIBLE);
                 } else {
                     Snackbar.make(passportNumberView, R.string.error_input, Snackbar.LENGTH_SHORT).show();
                 }
@@ -275,6 +281,9 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Boolean result) {
+            mainLayout.setVisibility(View.VISIBLE);
+            loadingLayout.setVisibility(View.GONE);
+
             if (result) {
 
                 MRZInfo mrzInfo = dg1File.getMRZInfo();
