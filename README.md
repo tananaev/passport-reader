@@ -5,9 +5,7 @@ Android app that uses the NFC chip to communicate with an electronic passport.
 Third party apps can use custom intent action to use this app to retrieve passport data.
 
 Custom action id:
-```
-com.tananaev.passportreader.REQUEST
-```
+- `com.tananaev.passportreader.REQUEST`
 
 Available data keys:
 - `firstName` - String
