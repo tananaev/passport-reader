@@ -15,6 +15,7 @@
  */
 package com.tananaev.passportreader;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
@@ -317,21 +318,28 @@ public class MainActivity extends AppCompatActivity {
 
             if (result) {
 
-                ((ImageView) findViewById(R.id.image_view)).setImageBitmap(bitmap);
+                Intent intent;
+                if (getCallingActivity() != null) {
+                    intent = new Intent();
+                } else {
+                    intent = new Intent(MainActivity.this, ResultActivity.class);
+                }
 
                 MRZInfo mrzInfo = dg1File.getMRZInfo();
-                /*documentNumberW.setText(mrzInfo.getDocumentNumber());
-                personalNumberW.setText(mrzInfo.getPersonalNumber());
-                issuingStateW.setText(mrzInfo.getIssuingState());
-                primaryIdentifierW.setText(mrzInfo.getPrimaryIdentifier().replace("<", " ").trim());
-                secondaryIdentifiersW.setText(mrzInfo.getSecondaryIdentifier().replace("<", " ").trim());
-                genderW.setText(mrzInfo.getGender().toString());
-                nationalityW.setText(mrzInfo.getNationality());
-                dobW.setText(mrzInfo.getDateOfBirth());
-                doeW.setText(mrzInfo.getDateOfExpiry());*/
 
-                // TODO
+                intent.putExtra(ResultActivity.KEY_FIRST_NAME, mrzInfo.getSecondaryIdentifier().replace("<", ""));
+                intent.putExtra(ResultActivity.KEY_LAST_NAME, mrzInfo.getPrimaryIdentifier().replace("<", ""));
+                intent.putExtra(ResultActivity.KEY_GENDER, mrzInfo.getGender().toString());
+                intent.putExtra(ResultActivity.KEY_STATE, mrzInfo.getIssuingState());
+                intent.putExtra(ResultActivity.KEY_NATIONALITY, mrzInfo.getNationality());
 
+                intent.putExtra(ResultActivity.KEY_PHOTO, bitmap);
+
+                if (getCallingActivity() != null) {
+                    setResult(Activity.RESULT_OK, intent);
+                } else {
+                    startActivity(intent);
+                }
 
             } else {
                 Snackbar.make(passportNumberView, R.string.error_read, Snackbar.LENGTH_SHORT).show();

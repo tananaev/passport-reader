@@ -11,4 +11,10 @@
     <string name="error_input">Please provide details to read passport</string>
     <string name="error_read">Failed to read passport</string>
 
+    <string name="result_first_name">First name</string>
+    <string name="result_last_name">Last name</string>
+    <string name="result_gender">Gender</string>
+    <string name="result_state">Country</string>
+    <string name="result_nationality">Nationality</string>
+
 </resources>

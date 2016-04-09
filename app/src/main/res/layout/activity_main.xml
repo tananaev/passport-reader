@@ -26,7 +26,6 @@
 
     </LinearLayout>
 
-
     <LinearLayout
         android:id="@+id/main_layout"
         android:layout_width="match_parent"
@@ -90,10 +89,5 @@
             android:text="@string/info_scan_passport" />
 
     </LinearLayout>
-
-    <ImageView
-        android:id="@+id/image_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
 
 </FrameLayout>
