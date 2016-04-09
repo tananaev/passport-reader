@@ -345,6 +345,7 @@ public class MainActivity extends AppCompatActivity {
 
                 if (getCallingActivity() != null) {
                     setResult(Activity.RESULT_OK, intent);
+                    finish();
                 } else {
                     startActivity(intent);
                 }

@@ -1,8 +1,10 @@
 package com.tananaev.sample;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.EditText;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -15,9 +17,22 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+                Intent intent = new Intent();
+                intent.setAction("com.tananaev.passportreader.REQUEST");
+
+                startActivityForResult(intent, 0);
+
             }
         });
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            ((EditText) findViewById(R.id.input_first_name)).setText(data.getStringExtra("firstName"));
+            ((EditText) findViewById(R.id.input_last_name)).setText(data.getStringExtra("lastName"));
+        }
     }
 
 }
