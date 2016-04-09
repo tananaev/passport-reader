@@ -12,9 +12,18 @@ android {
         versionName "1.0"
         multiDexEnabled = true
     }
+    signingConfigs {
+        release {
+            storeFile file('../../android.keystore')
+            keyAlias 'tananaev'
+            storePassword ''
+            keyPassword ''
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.release
         }
     }
     packagingOptions {
@@ -35,4 +44,15 @@ dependencies {
     compile 'com.madgag.spongycastle:prov:1.54.0.0'
     compile 'edu.ucar:jj2000:5.2'
     compile 'com.github.mhshams:jnbis:1.1.0'
+}
+
+task requestPasswords << {
+    android.signingConfigs.release.storePassword = new String(System.console().readPassword('\nStore password: '))
+    android.signingConfigs.release.keyPassword = new String(System.console().readPassword('Key password: '))
+}
+
+tasks.whenTaskAdded { theTask ->
+    if (theTask.name.equals('packageRelease')) {
+        theTask.dependsOn 'requestPasswords'
+    }
 }
