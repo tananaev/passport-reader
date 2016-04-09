@@ -200,6 +200,14 @@ public class MainActivity extends AppCompatActivity {
         adapter.enableForegroundDispatch(this, pendingIntent, null, filter);
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this);
+        adapter.disableForegroundDispatch(this);
+    }
+
     private static String convertDate(String input) {
         if (input == null) {
             return null;
