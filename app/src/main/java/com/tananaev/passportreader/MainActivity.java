@@ -111,11 +111,7 @@ public class MainActivity extends AppCompatActivity {
             PreferenceManager.getDefaultSharedPreferences(getActivity())
                     .edit().putString(getArguments().getString(KEY_PREFERENCE), value).apply();
             editText.setText(value);
-        }
-
-        @Override
-        public void onDismiss(DialogInterface dialog) {
-            editText.clearFocus();
+            dismiss();
         }
 
     }
@@ -161,23 +157,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        expirationDateView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        expirationDateView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    getSupportFragmentManager().beginTransaction().add(
-                            DatePickerFragment.createInstance(R.id.input_expiration_date, KEY_EXPIRATION_DATE), null).commit();
-                }
+            public void onClick(View view) {
+                getSupportFragmentManager().beginTransaction().add(
+                        DatePickerFragment.createInstance(R.id.input_expiration_date, KEY_EXPIRATION_DATE), null).commit();
             }
         });
 
-        birthDateView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        birthDateView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    getSupportFragmentManager().beginTransaction().add(
-                            DatePickerFragment.createInstance(R.id.input_date_of_birth, KEY_BIRTH_DATE), null).commit();
-                }
+            public void onClick(View view) {
+                getSupportFragmentManager().beginTransaction().add(
+                        DatePickerFragment.createInstance(R.id.input_date_of_birth, KEY_BIRTH_DATE), null).commit();
             }
         });
     }
