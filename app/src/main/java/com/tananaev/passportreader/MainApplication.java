@@ -29,7 +29,7 @@ public class MainApplication extends Application {
         super.onCreate();
         try {
             Security.insertProviderAt(new BouncyCastleProvider(), 1);
-        } catch (Exception e) {
+        } catch (NoClassDefFoundError e) {
             Log.w(MainApplication.class.getSimpleName(), e);
         }
     }
