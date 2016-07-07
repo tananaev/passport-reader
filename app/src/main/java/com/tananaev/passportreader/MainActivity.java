@@ -19,7 +19,6 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -230,7 +229,59 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class ReadTask extends AsyncTask<Void, Void, Boolean> {
+    private static String exceptionStack(Throwable exception) {
+        StringBuilder s = new StringBuilder();
+        String exceptionMsg = exception.getMessage();
+        if (exceptionMsg != null) {
+            s.append(exceptionMsg);
+            s.append(" - ");
+        }
+        s.append(exception.getClass().getSimpleName());
+        StackTraceElement[] stack = exception.getStackTrace();
+
+        if (stack.length > 0) {
+            int count = 3;
+            boolean first = true;
+            boolean skip = false;
+            String file = "";
+            s.append(" (");
+            for (StackTraceElement element : stack) {
+                if (count > 0 && element.getClassName().startsWith("com.tananaev")) {
+                    if (!first) {
+                        s.append(" < ");
+                    } else {
+                        first = false;
+                    }
+
+                    if (skip) {
+                        s.append("... < ");
+                        skip = false;
+                    }
+
+                    if (file.equals(element.getFileName())) {
+                        s.append("*");
+                    } else {
+                        file = element.getFileName();
+                        s.append(file.substring(0, file.length() - 5)); // remove ".java"
+                        count -= 1;
+                    }
+                    s.append(":").append(element.getLineNumber());
+                } else {
+                    skip = true;
+                }
+            }
+            if (skip) {
+                if (!first) {
+                    s.append(" < ");
+                }
+                s.append("...");
+            }
+            s.append(")");
+        }
+        return s.toString();
+    }
+
+    private class ReadTask extends AsyncTask<Void, Void, Exception> {
 
         private IsoDep isoDep;
         private BACKeySpec bacKey;
@@ -248,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
         private Bitmap bitmap;
 
         @Override
-        protected Boolean doInBackground(Void... params) {
+        protected Exception doInBackground(Void... params) {
             try {
 
                 CardService cardService = CardService.getInstance(isoDep);
@@ -300,17 +351,17 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             } catch (Exception e) {
-                return false;
+                return e;
             }
-            return true;
+            return null;
         }
 
         @Override
-        protected void onPostExecute(Boolean result) {
+        protected void onPostExecute(Exception result) {
             mainLayout.setVisibility(View.VISIBLE);
             loadingLayout.setVisibility(View.GONE);
 
-            if (result) {
+            if (result == null) {
 
                 Intent intent;
                 if (getCallingActivity() != null) {
@@ -337,7 +388,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             } else {
-                Snackbar.make(passportNumberView, R.string.error_read, Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(passportNumberView, exceptionStack(result), Snackbar.LENGTH_LONG).show();
             }
         }
 
