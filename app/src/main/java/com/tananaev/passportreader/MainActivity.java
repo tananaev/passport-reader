@@ -45,12 +45,14 @@ import org.jmrtd.BACKey;
 import org.jmrtd.BACKeySpec;
 import org.jmrtd.PassportService;
 import org.jmrtd.lds.COMFile;
+import org.jmrtd.lds.CardAccessFile;
 import org.jmrtd.lds.DG1File;
 import org.jmrtd.lds.DG2File;
 import org.jmrtd.lds.FaceImageInfo;
 import org.jmrtd.lds.FaceInfo;
 import org.jmrtd.lds.LDS;
 import org.jmrtd.lds.MRZInfo;
+import org.jmrtd.lds.PACEInfo;
 import org.jmrtd.lds.SODFile;
 
 import java.io.ByteArrayInputStream;
@@ -61,10 +63,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     private final static String KEY_PASSPORT_NUMBER = "passportNumber";
     private final static String KEY_EXPIRATION_DATE = "expirationDate";
@@ -308,9 +313,30 @@ public class MainActivity extends AppCompatActivity {
                 PassportService service = new PassportService(cardService);
                 service.open();
 
-                service.sendSelectApplet(false);
+                boolean paceSucceeded = false;
+                try {
+                    CardAccessFile cardAccessFile = new CardAccessFile(service.getInputStream(PassportService.EF_CARD_ACCESS));
+                    Collection<PACEInfo> paceInfos = cardAccessFile.getPACEInfos();
+                    if (paceInfos != null && paceInfos.size() > 0) {
+                        PACEInfo paceInfo = paceInfos.iterator().next();
+                        service.doPACE(bacKey, paceInfo.getObjectIdentifier(), PACEInfo.toParameterSpec(paceInfo.getParameterId()));
+                        paceSucceeded = true;
+                    } else {
+                        paceSucceeded = true;
+                    }
+                } catch (Exception e) {
+                    Log.w(TAG, e);
+                }
 
-                service.doBAC(bacKey);
+                service.sendSelectApplet(paceSucceeded);
+
+                if (!paceSucceeded) {
+                    try {
+                        service.getInputStream(PassportService.EF_COM).read();
+                    } catch (Exception e) {
+                        service.doBAC(bacKey);
+                    }
+                }
 
                 LDS lds = new LDS();
 
