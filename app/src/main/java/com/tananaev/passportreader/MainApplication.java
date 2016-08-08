@@ -15,23 +15,18 @@
  */
 package com.tananaev.passportreader;
 
-import android.app.Application;
-import android.util.Log;
+import android.support.multidex.MultiDexApplication;
 
 import org.spongycastle.jce.provider.BouncyCastleProvider;
 
 import java.security.Security;
 
-public class MainApplication extends Application {
+public class MainApplication extends MultiDexApplication {
 
     @Override
     public void onCreate() {
         super.onCreate();
-        try {
-            Security.insertProviderAt(new BouncyCastleProvider(), 1);
-        } catch (NoClassDefFoundError e) {
-            Log.w(MainApplication.class.getSimpleName(), e);
-        }
+        Security.insertProviderAt(new BouncyCastleProvider(), 1);
     }
 
 }
