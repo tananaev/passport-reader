@@ -404,7 +404,12 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra(ResultActivity.KEY_STATE, mrzInfo.getIssuingState());
                 intent.putExtra(ResultActivity.KEY_NATIONALITY, mrzInfo.getNationality());
 
-                intent.putExtra(ResultActivity.KEY_PHOTO, bitmap);
+                double ratio = 320.0 / bitmap.getHeight();
+                int targetHeight = (int) (bitmap.getHeight() * ratio);
+                int targetWidth = (int) (bitmap.getWidth() * ratio);
+
+                intent.putExtra(ResultActivity.KEY_PHOTO,
+                        Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, false));
 
                 if (getCallingActivity() != null) {
                     setResult(Activity.RESULT_OK, intent);
