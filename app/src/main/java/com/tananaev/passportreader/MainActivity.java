@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Anton Tananaev (anton.tananaev@gmail.com)
+ * Copyright 2016 - 2017 Anton Tananaev (anton.tananaev@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -404,12 +404,14 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra(ResultActivity.KEY_STATE, mrzInfo.getIssuingState());
                 intent.putExtra(ResultActivity.KEY_NATIONALITY, mrzInfo.getNationality());
 
-                double ratio = 320.0 / bitmap.getHeight();
-                int targetHeight = (int) (bitmap.getHeight() * ratio);
-                int targetWidth = (int) (bitmap.getWidth() * ratio);
+                if (bitmap != null) {
+                    double ratio = 320.0 / bitmap.getHeight();
+                    int targetHeight = (int) (bitmap.getHeight() * ratio);
+                    int targetWidth = (int) (bitmap.getWidth() * ratio);
 
-                intent.putExtra(ResultActivity.KEY_PHOTO,
-                        Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, false));
+                    intent.putExtra(ResultActivity.KEY_PHOTO,
+                            Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, false));
+                }
 
                 if (getCallingActivity() != null) {
                     setResult(Activity.RESULT_OK, intent);
