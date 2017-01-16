@@ -8,8 +8,8 @@ android {
         applicationId "com.tananaev.passportreader"
         minSdkVersion 15
         targetSdkVersion 25
-        versionCode 11
-        versionName "1.10"
+        versionCode 12
+        versionName "1.11"
         multiDexEnabled = true
     }
     packagingOptions {
@@ -31,6 +31,7 @@ dependencies {
     compile 'com.android.support:multidex:1.0.1'
     compile 'com.android.support:appcompat-v7:25.1.0'
     compile 'com.android.support:design:25.1.0'
+    compile 'com.wdullaer:materialdatetimepicker:3.1.0'
     compile 'org.jmrtd:jmrtd:0.5.5'
     compile 'net.sf.scuba:scuba-sc-android:0.0.9'
     compile 'com.madgag.spongycastle:prov:1.54.0.0'
