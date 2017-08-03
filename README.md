@@ -52,6 +52,17 @@ For full usage example see "sample" module in the repository.
 
 Author - Anton Tananaev ([anton.tananaev@gmail.com](mailto:anton.tananaev@gmail.com))
 
+## Dependencies
+
+Note that the app includes following third party dependencies:
+
+- JMRTD - [LGPL 3.0 License](https://www.gnu.org/licenses/lgpl-3.0.en.html)
+- SCUBA (Smart Card Utils) - [LGPL 3.0 License](https://www.gnu.org/licenses/lgpl-3.0.en.html)
+- Spongy Castle - MIT-based [Bouncy Castle Licence](https://www.bouncycastle.org/licence.html)
+- Unidata Jj2000 - [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0)
+- JNBIS - [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0)
+- Material DateTimepicker - [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0)
+
 ## License
 
     Apache License, Version 2.0
