@@ -6,8 +6,8 @@
     <string name="input_expiration_date">Expiration date</string>
     <string name="input_date_of_birth">Date of birth</string>
 
-    <string name="info_loading">Reading data...</string>
-    <string name="info_scan_passport">Enter details and place your phone on top of the passport</string>
+    <string name="info_loading">Reading data…</string>
+    <string name="info_scan_passport">Please fill details and place your phone on top of the passport. Following information is required to decode encrypted passport data.</string>
     <string name="error_input">Please provide details to read passport</string>
     <string name="error_read">Failed to read passport</string>
 

@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveDate(EditText editText, int year, int monthOfYear, int dayOfMonth, String preferenceKey) {
-        String value = String.format("%d-%02d-%02d", year, monthOfYear + 1, dayOfMonth);
+        String value = String.format(Locale.US, "%d-%02d-%02d", year, monthOfYear + 1, dayOfMonth);
         PreferenceManager.getDefaultSharedPreferences(this)
                 .edit().putString(preferenceKey, value).apply();
         editText.setText(value);
@@ -107,9 +107,9 @@ public class MainActivity extends AppCompatActivity {
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        passportNumberView = (EditText) findViewById(R.id.input_passport_number);
-        expirationDateView = (EditText) findViewById(R.id.input_expiration_date);
-        birthDateView = (EditText) findViewById(R.id.input_date_of_birth);
+        passportNumberView = findViewById(R.id.input_passport_number);
+        expirationDateView = findViewById(R.id.input_expiration_date);
+        birthDateView = findViewById(R.id.input_date_of_birth);
 
         mainLayout = findViewById(R.id.main_layout);
         loadingLayout = findViewById(R.id.loading_layout);
@@ -168,11 +168,13 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this);
-        Intent intent = new Intent(getApplicationContext(), this.getClass());
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        String[][] filter = new String[][] { new String[] { "android.nfc.tech.IsoDep" } };
-        adapter.enableForegroundDispatch(this, pendingIntent, null, filter);
+        if (adapter != null) {
+            Intent intent = new Intent(getApplicationContext(), this.getClass());
+            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            String[][] filter = new String[][]{new String[]{"android.nfc.tech.IsoDep"}};
+            adapter.enableForegroundDispatch(this, pendingIntent, null, filter);
+        }
     }
 
     @Override
@@ -180,7 +182,9 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
 
         NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this);
-        adapter.disableForegroundDispatch(this);
+        if (adapter != null) {
+            adapter.disableForegroundDispatch(this);
+        }
     }
 
     private static String convertDate(String input) {
