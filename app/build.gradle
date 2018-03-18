@@ -23,9 +23,8 @@ android {
 
 dependencies {
     implementation 'com.android.support:multidex:1.0.3'
-    implementation 'com.android.support:appcompat-v7:27.1.0'
     implementation 'com.android.support:design:27.1.0'
-    implementation 'com.wdullaer:materialdatetimepicker:3.1.0'
+    implementation 'com.wdullaer:materialdatetimepicker:3.5.2'
     implementation 'org.jmrtd:jmrtd:0.5.5'
     implementation 'net.sf.scuba:scuba-sc-android:0.0.9'
     implementation 'com.madgag.spongycastle:prov:1.54.0.0'
