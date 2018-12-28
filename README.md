@@ -9,6 +9,11 @@ Third party apps can use custom intent action to use this app to retrieve passpo
 Custom action id:
 - `com.tananaev.passportreader.REQUEST`
 
+The following string extras can be set to allow pre-filling of input fields:
+- `passportNumber` - String
+- `dateOfExpiry` - String in format YYYY-MM-DD
+- `dateOfBirth` - String in format YYYY-MM-DD
+
 Available data keys:
 - `firstName` - String
 - `lastName` - String
@@ -16,6 +21,7 @@ Available data keys:
 - `state` - String
 - `nationality` - String
 - `photo` - Bitmap
+- `photoBase64` - String
 
 Usage example:
 

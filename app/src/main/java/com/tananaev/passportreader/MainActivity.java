@@ -17,6 +17,7 @@ package com.tananaev.passportreader;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -30,8 +31,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
@@ -54,7 +57,9 @@ import org.jmrtd.lds.PACEInfo;
 import org.jmrtd.lds.SODFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -96,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText passportNumberView;
     private EditText expirationDateView;
     private EditText birthDateView;
-
+    private boolean passportNumberFromIntent = false;
     private View mainLayout;
     private View loadingLayout;
 
@@ -106,6 +111,24 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        String dateOfBirth = getIntent().getStringExtra("dateOfBirth");
+        String dateOfExpiry = getIntent().getStringExtra("dateOfExpiry");
+        String passportNumber = getIntent().getStringExtra("passportNumber");
+
+        if (dateOfBirth != null) {
+            PreferenceManager.getDefaultSharedPreferences(this)
+                .edit().putString(KEY_BIRTH_DATE, dateOfBirth).apply();
+        }
+        if (dateOfExpiry != null) {
+            PreferenceManager.getDefaultSharedPreferences(this)
+                    .edit().putString(KEY_EXPIRATION_DATE, dateOfExpiry).apply();
+        }
+        if (passportNumber != null) {
+            PreferenceManager.getDefaultSharedPreferences(this)
+                    .edit().putString(KEY_PASSPORT_NUMBER, passportNumber).apply();
+            passportNumberFromIntent = true;
+        }
 
         passportNumberView = findViewById(R.id.input_passport_number);
         expirationDateView = findViewById(R.id.input_expiration_date);
@@ -174,6 +197,20 @@ public class MainActivity extends AppCompatActivity {
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             String[][] filter = new String[][]{new String[]{"android.nfc.tech.IsoDep"}};
             adapter.enableForegroundDispatch(this, pendingIntent, null, filter);
+        }
+
+        if (passportNumberFromIntent) {
+            // When the passport number field is populated from the caller, we hide the
+            // soft keyboard as otherwise it can obscure the 'Reading data' progress indicator.
+            passportNumberView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    InputMethodManager keyboard = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                    if (keyboard != null) {
+                        keyboard.hideSoftInputFromWindow(passportNumberView.getWindowToken(), 0);
+                    }
+                }
+            },100);
         }
     }
 
@@ -371,6 +408,18 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
 
+        private String bitmapToBase64(Bitmap bitmap) {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+            byte[] byteArray = byteArrayOutputStream .toByteArray();
+            try {
+                byteArrayOutputStream.close();
+            } catch (IOException e) {
+                Log.w(TAG, "Failed to close output byte array stream: " + e.getMessage());
+            }
+            return Base64.encodeToString(byteArray, Base64.DEFAULT);
+        }
+
         @Override
         protected void onPostExecute(Exception result) {
             mainLayout.setVisibility(View.VISIBLE);
@@ -400,6 +449,8 @@ public class MainActivity extends AppCompatActivity {
 
                     intent.putExtra(ResultActivity.KEY_PHOTO,
                             Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, false));
+
+                    intent.putExtra(ResultActivity.KEY_PHOTO_BASE64, bitmapToBase64(bitmap));
                 }
 
                 if (getCallingActivity() != null) {
