@@ -13,7 +13,7 @@ The following string extras can be set to allow pre-filling of input fields:
 - `passportNumber` - String
 - `dateOfExpiry` - String in format YYYY-MM-DD
 - `dateOfBirth` - String in format YYYY-MM-DD
-- `photoAsBase64` - Boolean indicating whether to return photo as base64 encoded PNG (default false)
+- `photoAsBase64` - Boolean indicating whether to return photo as base64 encoded image (default false)
 
 Available data keys:
 - `firstName` - String
