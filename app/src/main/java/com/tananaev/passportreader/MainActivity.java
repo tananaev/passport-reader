@@ -17,7 +17,6 @@ package com.tananaev.passportreader;
 
 import android.app.Activity;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -25,17 +24,16 @@ import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
@@ -58,9 +56,7 @@ import org.jmrtd.lds.PACEInfo;
 import org.jmrtd.lds.SODFile;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -321,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
         private SODFile sodFile;
         private DG1File dg1File;
         private DG2File dg2File;
-
+        private String imageBase64;
         private Bitmap bitmap;
 
         @Override
@@ -394,25 +390,13 @@ public class MainActivity extends AppCompatActivity {
 
                     bitmap = ImageUtil.decodeImage(
                             MainActivity.this, faceImageInfo.getMimeType(), inputStream);
-
+                    imageBase64 = Base64.encodeToString(buffer, Base64.DEFAULT);
                 }
 
             } catch (Exception e) {
                 return e;
             }
             return null;
-        }
-
-        private String bitmapToBase64(Bitmap bitmap) {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-            byte[] byteArray = byteArrayOutputStream.toByteArray();
-            try {
-                byteArrayOutputStream.close();
-            } catch (IOException e) {
-                Log.w(TAG, e);
-            }
-            return Base64.encodeToString(byteArray, Base64.DEFAULT);
         }
 
         @Override
@@ -439,7 +423,7 @@ public class MainActivity extends AppCompatActivity {
 
                 if (bitmap != null) {
                     if (encodePhotoToBase64) {
-                        intent.putExtra(ResultActivity.KEY_PHOTO_BASE64, bitmapToBase64(bitmap));
+                        intent.putExtra(ResultActivity.KEY_PHOTO_BASE64, imageBase64);
                     } else {
                         double ratio = 320.0 / bitmap.getHeight();
                         int targetHeight = (int) (bitmap.getHeight() * ratio);
