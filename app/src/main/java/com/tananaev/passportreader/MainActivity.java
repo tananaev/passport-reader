@@ -34,6 +34,7 @@ import android.text.TextWatcher;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
@@ -102,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText expirationDateView;
     private EditText birthDateView;
     private boolean passportNumberFromIntent = false;
+    private boolean encodePhotoToBase64 = false;
     private View mainLayout;
     private View loadingLayout;
 
@@ -115,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
         String dateOfBirth = getIntent().getStringExtra("dateOfBirth");
         String dateOfExpiry = getIntent().getStringExtra("dateOfExpiry");
         String passportNumber = getIntent().getStringExtra("passportNumber");
+        encodePhotoToBase64 = getIntent().getBooleanExtra("photoAsBase64", false);
 
         if (dateOfBirth != null) {
             PreferenceManager.getDefaultSharedPreferences(this)
@@ -202,15 +205,7 @@ public class MainActivity extends AppCompatActivity {
         if (passportNumberFromIntent) {
             // When the passport number field is populated from the caller, we hide the
             // soft keyboard as otherwise it can obscure the 'Reading data' progress indicator.
-            passportNumberView.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    InputMethodManager keyboard = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                    if (keyboard != null) {
-                        keyboard.hideSoftInputFromWindow(passportNumberView.getWindowToken(), 0);
-                    }
-                }
-            },100);
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         }
     }
 
@@ -410,12 +405,12 @@ public class MainActivity extends AppCompatActivity {
 
         private String bitmapToBase64(Bitmap bitmap) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-            byte[] byteArray = byteArrayOutputStream .toByteArray();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+            byte[] byteArray = byteArrayOutputStream.toByteArray();
             try {
                 byteArrayOutputStream.close();
             } catch (IOException e) {
-                Log.w(TAG, "Failed to close output byte array stream: " + e.getMessage());
+                Log.w(TAG, e);
             }
             return Base64.encodeToString(byteArray, Base64.DEFAULT);
         }
@@ -443,14 +438,16 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra(ResultActivity.KEY_NATIONALITY, mrzInfo.getNationality());
 
                 if (bitmap != null) {
-                    double ratio = 320.0 / bitmap.getHeight();
-                    int targetHeight = (int) (bitmap.getHeight() * ratio);
-                    int targetWidth = (int) (bitmap.getWidth() * ratio);
+                    if (encodePhotoToBase64) {
+                        intent.putExtra(ResultActivity.KEY_PHOTO_BASE64, bitmapToBase64(bitmap));
+                    } else {
+                        double ratio = 320.0 / bitmap.getHeight();
+                        int targetHeight = (int) (bitmap.getHeight() * ratio);
+                        int targetWidth = (int) (bitmap.getWidth() * ratio);
 
-                    intent.putExtra(ResultActivity.KEY_PHOTO,
+                        intent.putExtra(ResultActivity.KEY_PHOTO,
                             Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, false));
-
-                    intent.putExtra(ResultActivity.KEY_PHOTO_BASE64, bitmapToBase64(bitmap));
+                    }
                 }
 
                 if (getCallingActivity() != null) {
