@@ -29,6 +29,7 @@ public class ResultActivity extends AppCompatActivity {
     public static final String KEY_STATE = "state";
     public static final String KEY_NATIONALITY = "nationality";
     public static final String KEY_PHOTO = "photo";
+    public static final String KEY_PHOTO_BASE64 = "photoBase64";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

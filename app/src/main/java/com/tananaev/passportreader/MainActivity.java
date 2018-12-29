@@ -24,14 +24,16 @@ import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
@@ -96,7 +98,8 @@ public class MainActivity extends AppCompatActivity {
     private EditText passportNumberView;
     private EditText expirationDateView;
     private EditText birthDateView;
-
+    private boolean passportNumberFromIntent = false;
+    private boolean encodePhotoToBase64 = false;
     private View mainLayout;
     private View loadingLayout;
 
@@ -106,6 +109,25 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        String dateOfBirth = getIntent().getStringExtra("dateOfBirth");
+        String dateOfExpiry = getIntent().getStringExtra("dateOfExpiry");
+        String passportNumber = getIntent().getStringExtra("passportNumber");
+        encodePhotoToBase64 = getIntent().getBooleanExtra("photoAsBase64", false);
+
+        if (dateOfBirth != null) {
+            PreferenceManager.getDefaultSharedPreferences(this)
+                .edit().putString(KEY_BIRTH_DATE, dateOfBirth).apply();
+        }
+        if (dateOfExpiry != null) {
+            PreferenceManager.getDefaultSharedPreferences(this)
+                    .edit().putString(KEY_EXPIRATION_DATE, dateOfExpiry).apply();
+        }
+        if (passportNumber != null) {
+            PreferenceManager.getDefaultSharedPreferences(this)
+                    .edit().putString(KEY_PASSPORT_NUMBER, passportNumber).apply();
+            passportNumberFromIntent = true;
+        }
 
         passportNumberView = findViewById(R.id.input_passport_number);
         expirationDateView = findViewById(R.id.input_expiration_date);
@@ -174,6 +196,12 @@ public class MainActivity extends AppCompatActivity {
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             String[][] filter = new String[][]{new String[]{"android.nfc.tech.IsoDep"}};
             adapter.enableForegroundDispatch(this, pendingIntent, null, filter);
+        }
+
+        if (passportNumberFromIntent) {
+            // When the passport number field is populated from the caller, we hide the
+            // soft keyboard as otherwise it can obscure the 'Reading data' progress indicator.
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         }
     }
 
@@ -289,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
         private SODFile sodFile;
         private DG1File dg1File;
         private DG2File dg2File;
-
+        private String imageBase64;
         private Bitmap bitmap;
 
         @Override
@@ -362,7 +390,7 @@ public class MainActivity extends AppCompatActivity {
 
                     bitmap = ImageUtil.decodeImage(
                             MainActivity.this, faceImageInfo.getMimeType(), inputStream);
-
+                    imageBase64 = Base64.encodeToString(buffer, Base64.DEFAULT);
                 }
 
             } catch (Exception e) {
@@ -394,12 +422,16 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra(ResultActivity.KEY_NATIONALITY, mrzInfo.getNationality());
 
                 if (bitmap != null) {
-                    double ratio = 320.0 / bitmap.getHeight();
-                    int targetHeight = (int) (bitmap.getHeight() * ratio);
-                    int targetWidth = (int) (bitmap.getWidth() * ratio);
+                    if (encodePhotoToBase64) {
+                        intent.putExtra(ResultActivity.KEY_PHOTO_BASE64, imageBase64);
+                    } else {
+                        double ratio = 320.0 / bitmap.getHeight();
+                        int targetHeight = (int) (bitmap.getHeight() * ratio);
+                        int targetWidth = (int) (bitmap.getWidth() * ratio);
 
-                    intent.putExtra(ResultActivity.KEY_PHOTO,
+                        intent.putExtra(ResultActivity.KEY_PHOTO,
                             Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, false));
+                    }
                 }
 
                 if (getCallingActivity() != null) {
