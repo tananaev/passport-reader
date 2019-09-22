@@ -1,15 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion "27.0.3"
+    compileSdkVersion 29
 
     defaultConfig {
         applicationId "com.tananaev.passportreader"
         minSdkVersion 15
-        targetSdkVersion 27
-        versionCode 13
-        versionName "1.12"
+        targetSdkVersion 29
+        versionCode 14
+        versionName "1.13"
         multiDexEnabled = true
     }
     packagingOptions {
@@ -22,8 +21,8 @@ android {
 }
 
 dependencies {
-    implementation 'com.android.support:multidex:1.0.3'
-    implementation 'com.android.support:design:27.1.0'
+    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'com.google.android.material:material:1.0.0'
     implementation 'com.wdullaer:materialdatetimepicker:3.5.2'
     implementation 'org.jmrtd:jmrtd:0.5.5'
     implementation 'net.sf.scuba:scuba-sc-android:0.0.9'

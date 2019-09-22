@@ -15,7 +15,7 @@
  */
 package com.tananaev.passportreader;
 
-import android.support.multidex.MultiDexApplication;
+import androidx.multidex.MultiDexApplication;
 
 import org.spongycastle.jce.provider.BouncyCastleProvider;
 
