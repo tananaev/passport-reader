@@ -44,14 +44,15 @@ import net.sf.scuba.smartcards.CardService;
 import org.jmrtd.BACKey;
 import org.jmrtd.BACKeySpec;
 import org.jmrtd.PassportService;
-import org.jmrtd.lds.COMFile;
+import org.jmrtd.lds.CardSecurityFile;
+import org.jmrtd.lds.icao.COMFile;
 import org.jmrtd.lds.CardAccessFile;
-import org.jmrtd.lds.DG1File;
-import org.jmrtd.lds.DG2File;
-import org.jmrtd.lds.FaceImageInfo;
-import org.jmrtd.lds.FaceInfo;
-import org.jmrtd.lds.LDS;
-import org.jmrtd.lds.MRZInfo;
+import org.jmrtd.lds.icao.DG1File;
+import org.jmrtd.lds.icao.DG2File;
+import org.jmrtd.lds.iso19794.FaceImageInfo;
+import org.jmrtd.lds.iso19794.FaceInfo;
+//import org.jmrtd.lds.LDS;
+import org.jmrtd.lds.icao.MRZInfo;
 import org.jmrtd.lds.PACEInfo;
 import org.jmrtd.lds.SODFile;
 
@@ -66,6 +67,9 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+
+import static org.jmrtd.PassportService.DEFAULT_MAX_BLOCKSIZE;
+import static org.jmrtd.PassportService.NORMAL_MAX_TRANCEIVE_LENGTH;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -327,13 +331,14 @@ public class MainActivity extends AppCompatActivity {
                 CardService cardService = CardService.getInstance(isoDep);
                 cardService.open();
 
-                PassportService service = new PassportService(cardService);
+                PassportService service = new PassportService(cardService, NORMAL_MAX_TRANCEIVE_LENGTH, DEFAULT_MAX_BLOCKSIZE, true, false);
                 service.open();
 
                 boolean paceSucceeded = false;
                 try {
-                    CardAccessFile cardAccessFile = new CardAccessFile(service.getInputStream(PassportService.EF_CARD_ACCESS));
-                    Collection<PACEInfo> paceInfos = cardAccessFile.getPACEInfos();
+                    //CardAccessFile cardAccessFile = new CardAccessFile(service.getInputStream(PassportService.EF_CARD_ACCESS));
+                    CardSecurityFile cardSecurityFile = new CardSecurityFile(service.getInputStream(PassportService.EF_CARD_SECURITY));
+                    Collection<PACEInfo> paceInfos = cardSecurityFile.getPACEInfos();
                     if (paceInfos != null && paceInfos.size() > 0) {
                         PACEInfo paceInfo = paceInfos.iterator().next();
                         service.doPACE(bacKey, paceInfo.getObjectIdentifier(), PACEInfo.toParameterSpec(paceInfo.getParameterId()));
@@ -355,23 +360,27 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
-                LDS lds = new LDS();
+                //LDS lds = new LDS();
 
                 CardFileInputStream comIn = service.getInputStream(PassportService.EF_COM);
-                lds.add(PassportService.EF_COM, comIn, comIn.getLength());
-                comFile = lds.getCOMFile();
+                //lds.add(PassportService.EF_COM, comIn, comIn.getLength());
+                //comFile = lds.getCOMFile();
+                comFile = new COMFile(comIn);
 
                 CardFileInputStream sodIn = service.getInputStream(PassportService.EF_SOD);
-                lds.add(PassportService.EF_SOD, sodIn, sodIn.getLength());
-                sodFile = lds.getSODFile();
+                //lds.add(PassportService.EF_SOD, sodIn, sodIn.getLength());
+                //sodFile = lds.getSODFile();
+                sodFile = new SODFile(sodIn);
 
                 CardFileInputStream dg1In = service.getInputStream(PassportService.EF_DG1);
-                lds.add(PassportService.EF_DG1, dg1In, dg1In.getLength());
-                dg1File = lds.getDG1File();
+                //lds.add(PassportService.EF_DG1, dg1In, dg1In.getLength());
+                //dg1File = lds.getDG1File();
+                dg1File = new DG1File(dg1In);
 
                 CardFileInputStream dg2In = service.getInputStream(PassportService.EF_DG2);
-                lds.add(PassportService.EF_DG2, dg2In, dg2In.getLength());
-                dg2File = lds.getDG2File();
+                //lds.add(PassportService.EF_DG2, dg2In, dg2In.getLength());
+                //dg2File = lds.getDG2File();
+                dg2File = new DG2File(dg2In);
 
                 List<FaceImageInfo> allFaceImageInfos = new ArrayList<>();
                 List<FaceInfo> faceInfos = dg2File.getFaceInfos();
