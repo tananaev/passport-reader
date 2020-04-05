@@ -45,6 +45,7 @@ import org.jmrtd.BACKey;
 import org.jmrtd.BACKeySpec;
 import org.jmrtd.PassportService;
 import org.jmrtd.lds.CardSecurityFile;
+import org.jmrtd.lds.SecurityInfo;
 import org.jmrtd.lds.icao.COMFile;
 import org.jmrtd.lds.icao.DG1File;
 import org.jmrtd.lds.icao.DG2File;
@@ -315,8 +316,6 @@ public class MainActivity extends AppCompatActivity {
             this.bacKey = bacKey;
         }
 
-        private COMFile comFile;
-        private SODFile sodFile;
         private DG1File dg1File;
         private DG2File dg2File;
         private String imageBase64;
@@ -335,13 +334,13 @@ public class MainActivity extends AppCompatActivity {
                 boolean paceSucceeded = false;
                 try {
                     CardSecurityFile cardSecurityFile = new CardSecurityFile(service.getInputStream(PassportService.EF_CARD_SECURITY));
-                    Collection<PACEInfo> paceInfos = cardSecurityFile.getPACEInfos();
-                    if (paceInfos != null && paceInfos.size() > 0) {
-                        PACEInfo paceInfo = paceInfos.iterator().next();
-                        service.doPACE(bacKey, paceInfo.getObjectIdentifier(), PACEInfo.toParameterSpec(paceInfo.getParameterId()), null);
-                        paceSucceeded = true;
-                    } else {
-                        paceSucceeded = true;
+                    Collection<SecurityInfo> securityInfoCollection = cardSecurityFile.getSecurityInfos();
+                    for (SecurityInfo securityInfo : securityInfoCollection) {
+                        if (securityInfo instanceof PACEInfo) {
+                            PACEInfo paceInfo = (PACEInfo) securityInfo;
+                            service.doPACE(bacKey, paceInfo.getObjectIdentifier(), PACEInfo.toParameterSpec(paceInfo.getParameterId()), null);
+                            paceSucceeded = true;
+                        }
                     }
                 } catch (Exception e) {
                     Log.w(TAG, e);
@@ -405,8 +404,8 @@ public class MainActivity extends AppCompatActivity {
 
                 MRZInfo mrzInfo = dg1File.getMRZInfo();
 
-                intent.putExtra(ResultActivity.KEY_FIRST_NAME, mrzInfo.getSecondaryIdentifier().replace("<", ""));
-                intent.putExtra(ResultActivity.KEY_LAST_NAME, mrzInfo.getPrimaryIdentifier().replace("<", ""));
+                intent.putExtra(ResultActivity.KEY_FIRST_NAME, mrzInfo.getSecondaryIdentifier().replace("<", " "));
+                intent.putExtra(ResultActivity.KEY_LAST_NAME, mrzInfo.getPrimaryIdentifier().replace("<", " "));
                 intent.putExtra(ResultActivity.KEY_GENDER, mrzInfo.getGender().toString());
                 intent.putExtra(ResultActivity.KEY_STATE, mrzInfo.getIssuingState());
                 intent.putExtra(ResultActivity.KEY_NATIONALITY, mrzInfo.getNationality());
