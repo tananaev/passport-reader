@@ -16,5 +16,10 @@
     <string name="result_gender">Gender</string>
     <string name="result_state">Country</string>
     <string name="result_nationality">Nationality</string>
+    <string name="result_passive_auth">Passive Authentication</string>
+    <string name="result_chip_auth">Chip Authentication</string>
+
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 
 </resources>
