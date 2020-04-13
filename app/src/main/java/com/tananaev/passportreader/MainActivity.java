@@ -70,6 +70,7 @@ import java.math.BigInteger;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.PublicKey;
+import java.security.Signature;
 import java.security.cert.CertPath;
 import java.security.cert.CertPathValidator;
 import java.security.cert.CertificateFactory;
@@ -412,7 +413,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.w(TAG, e);
                 }
 
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                MessageDigest digest = MessageDigest.getInstance(sodFile.getDigestAlgorithm());
 
                 Map<Integer,byte[]> dataHashes = sodFile.getDataGroupHashes();
 
@@ -460,7 +461,7 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         // We check if the certificate is signed by a trusted CSCA
-                        // TODO: verify is certificate is revoked
+                        // TODO: verify if certificate is revoked
                         CertPath cp = cf.generateCertPath(docSigningCertificates);
                         PKIXParameters pkixParameters = new PKIXParameters(keystore);
                         pkixParameters.setRevocationEnabled(false);
@@ -468,7 +469,10 @@ public class MainActivity extends AppCompatActivity {
                                 CertPathValidator.getInstance(CertPathValidator.getDefaultType());
                         cpv.validate(cp, pkixParameters);
 
-                        passiveAuthSuccess = true;
+                        Signature sign = Signature.getInstance(sodFile.getDigestEncryptionAlgorithm());
+                        sign.initVerify(sodFile.getDocSigningCertificate());
+                        sign.update(sodFile.getEContent());
+                        passiveAuthSuccess = sign.verify(sodFile.getEncryptedDigest());
                     }
                     catch (Exception e) {
                         Log.w(TAG, e);
