@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2017 Anton Tananaev (anton.tananaev@gmail.com)
+ * Copyright 2016 - 2020 Anton Tananaev (anton.tananaev@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,6 @@ import android.nfc.tech.IsoDep;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import com.google.android.material.snackbar.Snackbar;
-import androidx.appcompat.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Base64;
@@ -36,6 +34,9 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
 
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.snackbar.Snackbar;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import net.sf.scuba.smartcards.CardFileInputStream;
@@ -45,15 +46,13 @@ import org.jmrtd.BACKey;
 import org.jmrtd.BACKeySpec;
 import org.jmrtd.PassportService;
 import org.jmrtd.lds.CardSecurityFile;
+import org.jmrtd.lds.PACEInfo;
 import org.jmrtd.lds.SecurityInfo;
-import org.jmrtd.lds.icao.COMFile;
 import org.jmrtd.lds.icao.DG1File;
 import org.jmrtd.lds.icao.DG2File;
+import org.jmrtd.lds.icao.MRZInfo;
 import org.jmrtd.lds.iso19794.FaceImageInfo;
 import org.jmrtd.lds.iso19794.FaceInfo;
-import org.jmrtd.lds.icao.MRZInfo;
-import org.jmrtd.lds.PACEInfo;
-import org.jmrtd.lds.SODFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -233,6 +232,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
         if (NfcAdapter.ACTION_TECH_DISCOVERED.equals(intent.getAction())) {
             Tag tag = intent.getExtras().getParcelable(NfcAdapter.EXTRA_TAG);
             if (Arrays.asList(tag.getTechList()).contains("android.nfc.tech.IsoDep")) {
@@ -311,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
         private IsoDep isoDep;
         private BACKeySpec bacKey;
 
-        public ReadTask(IsoDep isoDep, BACKeySpec bacKey) {
+        private ReadTask(IsoDep isoDep, BACKeySpec bacKey) {
             this.isoDep = isoDep;
             this.bacKey = bacKey;
         }
