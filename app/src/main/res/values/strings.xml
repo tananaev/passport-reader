@@ -19,7 +19,7 @@
     <string name="result_passive_auth">Passive Authentication</string>
     <string name="result_chip_auth">Chip Authentication</string>
 
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
+    <string name="pass">Pass</string>
+    <string name="failed">Failed</string>
 
 </resources>

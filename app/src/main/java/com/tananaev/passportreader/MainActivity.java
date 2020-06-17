@@ -347,6 +347,99 @@ public class MainActivity extends AppCompatActivity {
         private boolean chipAuthSucceeded = false;
         private boolean passiveAuthSuccess = false;
 
+        private byte[] dg14Encoded = new byte[0];
+
+        private void doChipAuth(PassportService service) {
+            try {
+                CardFileInputStream dg14In = service.getInputStream(PassportService.EF_DG14);
+                dg14Encoded = IOUtils.toByteArray(dg14In);
+                ByteArrayInputStream dg14InByte = new ByteArrayInputStream(dg14Encoded);
+                dg14File = new DG14File(dg14InByte);
+
+
+                Collection<SecurityInfo> dg14FileSecurityInfos = dg14File.getSecurityInfos();
+                for (SecurityInfo securityInfo : dg14FileSecurityInfos) {
+                    if (securityInfo instanceof ChipAuthenticationPublicKeyInfo) {
+                        ChipAuthenticationPublicKeyInfo publicKeyInfo = (ChipAuthenticationPublicKeyInfo) securityInfo;
+                        BigInteger keyId = publicKeyInfo.getKeyId();
+                        PublicKey publicKey = publicKeyInfo.getSubjectPublicKey();
+                        String oid = publicKeyInfo.getObjectIdentifier();
+                        service.doEACCA(keyId, ChipAuthenticationPublicKeyInfo.ID_CA_ECDH_AES_CBC_CMAC_256, oid, publicKey);
+                        chipAuthSucceeded = true;
+                    }
+                }
+            }
+            catch (Exception e) {
+                Log.w(TAG, e);
+            }
+        }
+
+        private void doPassiveAuth() {
+            try {
+                MessageDigest digest = MessageDigest.getInstance(sodFile.getDigestAlgorithm());
+
+                Map<Integer,byte[]> dataHashes = sodFile.getDataGroupHashes();
+
+                byte[] dg14Hash = new byte[0];
+                if(chipAuthSucceeded)
+                    dg14Hash = digest.digest(dg14Encoded);
+                byte[] dg1Hash = digest.digest(dg1File.getEncoded());
+                byte[] dg2Hash = digest.digest(dg2File.getEncoded());
+
+                if(Arrays.equals(dg1Hash, dataHashes.get(1)) && Arrays.equals(dg2Hash, dataHashes.get(2)) && (!chipAuthSucceeded || Arrays.equals(dg14Hash, dataHashes.get(14)))) {
+                        // We retrieve the CSCA from the german master list
+                        ASN1InputStream asn1InputStream = new ASN1InputStream(getAssets().open("masterList"));
+                        ASN1Primitive p;
+                        KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+                        keystore.load(null, null);
+                        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+                        while((p = asn1InputStream.readObject()) != null) {
+                            ASN1Sequence asn1 = ASN1Sequence.getInstance(p);
+                            if (asn1 == null || asn1.size() == 0)
+                            {
+                                throw new IllegalArgumentException("null or empty sequence passed.");
+                            }
+                            if (asn1.size() != 2)
+                            {
+                                throw new IllegalArgumentException("Incorrect sequence size: " + asn1.size());
+                            }
+                            ASN1Set certSet = ASN1Set.getInstance(asn1.getObjectAt(1));
+
+                            for (int i = 0; i < certSet.size(); i++)
+                            {
+                                Certificate certificate = Certificate.getInstance(certSet.getObjectAt(i));
+
+                                byte[] pemCertificate = certificate.getEncoded();
+
+                                java.security.cert.Certificate javaCertificate = cf.generateCertificate(new ByteArrayInputStream(pemCertificate));
+                                keystore.setCertificateEntry(String.valueOf(i), javaCertificate);
+                            }
+                        }
+                        List<X509Certificate> docSigningCertificates = sodFile.getDocSigningCertificates();
+                        for (X509Certificate docSigningCertificate : docSigningCertificates) {
+                            docSigningCertificate.checkValidity();
+                        }
+
+                        // We check if the certificate is signed by a trusted CSCA
+                        // TODO: verify if certificate is revoked
+                        CertPath cp = cf.generateCertPath(docSigningCertificates);
+                        PKIXParameters pkixParameters = new PKIXParameters(keystore);
+                        pkixParameters.setRevocationEnabled(false);
+                        CertPathValidator cpv =
+                                CertPathValidator.getInstance(CertPathValidator.getDefaultType());
+                        cpv.validate(cp, pkixParameters);
+
+                        Signature sign = Signature.getInstance(sodFile.getDigestEncryptionAlgorithm());
+                        sign.initVerify(sodFile.getDocSigningCertificate());
+                        sign.update(sodFile.getEContent());
+                        passiveAuthSuccess = sign.verify(sodFile.getEncryptedDigest());
+                }
+            }
+            catch (Exception e) {
+                Log.w(TAG, e);
+            }
+        }
+
         @Override
         protected Exception doInBackground(Void... params) {
             try {
@@ -392,95 +485,10 @@ public class MainActivity extends AppCompatActivity {
                 sodFile = new SODFile(sodIn);
 
                 // We perform Chip Authentication using Data Group 14
-                byte[] dg14Encoded = new byte[0];
-                try {
-                    CardFileInputStream dg14In = service.getInputStream(PassportService.EF_DG14);
-                    dg14Encoded = IOUtils.toByteArray(dg14In);
-                    ByteArrayInputStream dg14InByte = new ByteArrayInputStream(dg14Encoded);
-                    dg14File = new DG14File(dg14InByte);
+                doChipAuth(service);
 
-
-                    Collection<SecurityInfo> dg14FileSecurityInfos = dg14File.getSecurityInfos();
-                    for (SecurityInfo securityInfo : dg14FileSecurityInfos) {
-                        if (securityInfo instanceof ChipAuthenticationPublicKeyInfo) {
-                            ChipAuthenticationPublicKeyInfo publicKeyInfo = (ChipAuthenticationPublicKeyInfo) securityInfo;
-                            BigInteger keyId = publicKeyInfo.getKeyId();
-                            PublicKey publicKey = publicKeyInfo.getSubjectPublicKey();
-                            String oid = publicKeyInfo.getObjectIdentifier();
-                            service.doEACCA(keyId, ChipAuthenticationPublicKeyInfo.ID_CA_ECDH_AES_CBC_CMAC_256, oid, publicKey);
-                            chipAuthSucceeded = true;
-                        }
-                    }
-                }
-                catch (Exception e) {
-                    Log.w(TAG, e);
-                }
-
-                MessageDigest digest = MessageDigest.getInstance(sodFile.getDigestAlgorithm());
-
-                Map<Integer,byte[]> dataHashes = sodFile.getDataGroupHashes();
-
-                byte[] dg14Hash = new byte[0];
-                if(chipAuthSucceeded)
-                    dg14Hash = digest.digest(dg14Encoded);
-                byte[] dg1Hash = digest.digest(dg1File.getEncoded());
-                byte[] dg2Hash = digest.digest(dg2File.getEncoded());
-
-                if(Arrays.equals(dg1Hash, dataHashes.get(1)) && Arrays.equals(dg2Hash, dataHashes.get(2)) && (!chipAuthSucceeded || Arrays.equals(dg14Hash, dataHashes.get(14)))) {
-                    try {
-                        // We retrieve the CSCA from the german master list
-                        ASN1InputStream asn1InputStream = new ASN1InputStream(getAssets().open("masterList"));
-                        ASN1Primitive p;
-                        KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-                        keystore.load(null, null);
-                        CertificateFactory cf = CertificateFactory.getInstance("X.509");
-                        while((p = asn1InputStream.readObject()) != null) {
-                            ASN1Sequence asn1 = ASN1Sequence.getInstance(p);
-                            if (asn1 == null || asn1.size() == 0)
-                            {
-                                throw new IllegalArgumentException(
-                                        "null or empty sequence passed.");
-                            }
-                            if (asn1.size() != 2)
-                            {
-                                throw new IllegalArgumentException(
-                                        "Incorrect sequence size: " + asn1.size());
-                            }
-                            ASN1Set certSet = ASN1Set.getInstance(asn1.getObjectAt(1));
-
-                            for (int i = 0; i < certSet.size(); i++)
-                            {
-                                Certificate certificate = Certificate.getInstance(certSet.getObjectAt(i));
-
-                                byte[] pemCertificate = certificate.getEncoded();
-
-                                java.security.cert.Certificate javaCertificate = cf.generateCertificate(new ByteArrayInputStream(pemCertificate));
-                                keystore.setCertificateEntry(String.valueOf(i), javaCertificate);
-                            }
-                        }
-                        List<X509Certificate> docSigningCertificates = sodFile.getDocSigningCertificates();
-                        for (X509Certificate docSigningCertificate : docSigningCertificates) {
-                            docSigningCertificate.checkValidity();
-                        }
-
-                        // We check if the certificate is signed by a trusted CSCA
-                        // TODO: verify if certificate is revoked
-                        CertPath cp = cf.generateCertPath(docSigningCertificates);
-                        PKIXParameters pkixParameters = new PKIXParameters(keystore);
-                        pkixParameters.setRevocationEnabled(false);
-                        CertPathValidator cpv =
-                                CertPathValidator.getInstance(CertPathValidator.getDefaultType());
-                        cpv.validate(cp, pkixParameters);
-
-                        Signature sign = Signature.getInstance(sodFile.getDigestEncryptionAlgorithm());
-                        sign.initVerify(sodFile.getDocSigningCertificate());
-                        sign.update(sodFile.getEContent());
-                        passiveAuthSuccess = sign.verify(sodFile.getEncryptedDigest());
-                    }
-                    catch (Exception e) {
-                        Log.w(TAG, e);
-                    }
-                }
+                // Then Passive Authentication using SODFile
+                doPassiveAuth();
 
                 List<FaceImageInfo> allFaceImageInfos = new ArrayList<>();
                 List<FaceInfo> faceInfos = dg2File.getFaceInfos();
@@ -532,14 +540,18 @@ public class MainActivity extends AppCompatActivity {
 
                 String passiveAuthStr = "";
                 String chipAuthStr = "";
-                if(passiveAuthSuccess)
-                    passiveAuthStr = getString(R.string.yes);
-                else
-                    passiveAuthStr = getString(R.string.no);
-                if (chipAuthSucceeded)
-                    chipAuthStr = getString(R.string.yes);
-                else
-                    chipAuthStr = getString(R.string.no);
+                if(passiveAuthSuccess) {
+                    passiveAuthStr = getString(R.string.pass);
+                }
+                else {
+                    passiveAuthStr = getString(R.string.failed);
+                }
+                if (chipAuthSucceeded) {
+                    chipAuthStr = getString(R.string.pass);
+                }
+                else {
+                    chipAuthStr = getString(R.string.failed);
+                }
                 intent.putExtra(ResultActivity.KEY_PASSIVE_AUTH, passiveAuthStr);
                 intent.putExtra(ResultActivity.KEY_CHIP_AUTH, chipAuthStr);
 
