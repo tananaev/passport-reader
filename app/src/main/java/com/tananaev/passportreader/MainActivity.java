@@ -358,7 +358,6 @@ public class MainActivity extends AppCompatActivity {
                 ByteArrayInputStream dg14InByte = new ByteArrayInputStream(dg14Encoded);
                 dg14File = new DG14File(dg14InByte);
 
-
                 Collection<SecurityInfo> dg14FileSecurityInfos = dg14File.getSecurityInfos();
                 for (SecurityInfo securityInfo : dg14FileSecurityInfos) {
                     if (securityInfo instanceof ChipAuthenticationPublicKeyInfo) {
@@ -383,58 +382,55 @@ public class MainActivity extends AppCompatActivity {
                 Map<Integer,byte[]> dataHashes = sodFile.getDataGroupHashes();
 
                 byte[] dg14Hash = new byte[0];
-                if(chipAuthSucceeded)
+                if(chipAuthSucceeded) {
                     dg14Hash = digest.digest(dg14Encoded);
+                }
                 byte[] dg1Hash = digest.digest(dg1File.getEncoded());
                 byte[] dg2Hash = digest.digest(dg2File.getEncoded());
 
                 if(Arrays.equals(dg1Hash, dataHashes.get(1)) && Arrays.equals(dg2Hash, dataHashes.get(2)) && (!chipAuthSucceeded || Arrays.equals(dg14Hash, dataHashes.get(14)))) {
-                        // We retrieve the CSCA from the german master list
-                        ASN1InputStream asn1InputStream = new ASN1InputStream(getAssets().open("masterList"));
-                        ASN1Primitive p;
-                        KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-                        keystore.load(null, null);
-                        CertificateFactory cf = CertificateFactory.getInstance("X.509");
-                        while((p = asn1InputStream.readObject()) != null) {
-                            ASN1Sequence asn1 = ASN1Sequence.getInstance(p);
-                            if (asn1 == null || asn1.size() == 0)
-                            {
-                                throw new IllegalArgumentException("null or empty sequence passed.");
-                            }
-                            if (asn1.size() != 2)
-                            {
-                                throw new IllegalArgumentException("Incorrect sequence size: " + asn1.size());
-                            }
-                            ASN1Set certSet = ASN1Set.getInstance(asn1.getObjectAt(1));
-
-                            for (int i = 0; i < certSet.size(); i++)
-                            {
-                                Certificate certificate = Certificate.getInstance(certSet.getObjectAt(i));
-
-                                byte[] pemCertificate = certificate.getEncoded();
-
-                                java.security.cert.Certificate javaCertificate = cf.generateCertificate(new ByteArrayInputStream(pemCertificate));
-                                keystore.setCertificateEntry(String.valueOf(i), javaCertificate);
-                            }
+                    // We retrieve the CSCA from the german master list
+                    ASN1InputStream asn1InputStream = new ASN1InputStream(getAssets().open("masterList"));
+                    ASN1Primitive p;
+                    KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+                    keystore.load(null, null);
+                    CertificateFactory cf = CertificateFactory.getInstance("X.509");
+                    while((p = asn1InputStream.readObject()) != null) {
+                        ASN1Sequence asn1 = ASN1Sequence.getInstance(p);
+                        if (asn1 == null || asn1.size() == 0) {
+                            throw new IllegalArgumentException("null or empty sequence passed.");
                         }
-                        List<X509Certificate> docSigningCertificates = sodFile.getDocSigningCertificates();
-                        for (X509Certificate docSigningCertificate : docSigningCertificates) {
-                            docSigningCertificate.checkValidity();
+                        if (asn1.size() != 2) {
+                            throw new IllegalArgumentException("Incorrect sequence size: " + asn1.size());
                         }
+                        ASN1Set certSet = ASN1Set.getInstance(asn1.getObjectAt(1));
 
-                        // We check if the certificate is signed by a trusted CSCA
-                        // TODO: verify if certificate is revoked
-                        CertPath cp = cf.generateCertPath(docSigningCertificates);
-                        PKIXParameters pkixParameters = new PKIXParameters(keystore);
-                        pkixParameters.setRevocationEnabled(false);
-                        CertPathValidator cpv =
-                                CertPathValidator.getInstance(CertPathValidator.getDefaultType());
-                        cpv.validate(cp, pkixParameters);
+                        for (int i = 0; i < certSet.size(); i++) {
+                            Certificate certificate = Certificate.getInstance(certSet.getObjectAt(i));
 
-                        Signature sign = Signature.getInstance(sodFile.getDigestEncryptionAlgorithm());
-                        sign.initVerify(sodFile.getDocSigningCertificate());
-                        sign.update(sodFile.getEContent());
-                        passiveAuthSuccess = sign.verify(sodFile.getEncryptedDigest());
+                            byte[] pemCertificate = certificate.getEncoded();
+
+                            java.security.cert.Certificate javaCertificate = cf.generateCertificate(new ByteArrayInputStream(pemCertificate));
+                            keystore.setCertificateEntry(String.valueOf(i), javaCertificate);
+                        }
+                    }
+                    List<X509Certificate> docSigningCertificates = sodFile.getDocSigningCertificates();
+                    for (X509Certificate docSigningCertificate : docSigningCertificates) {
+                        docSigningCertificate.checkValidity();
+                    }
+
+                    // We check if the certificate is signed by a trusted CSCA
+                    // TODO: verify if certificate is revoked
+                    CertPath cp = cf.generateCertPath(docSigningCertificates);
+                    PKIXParameters pkixParameters = new PKIXParameters(keystore);
+                    pkixParameters.setRevocationEnabled(false);
+                    CertPathValidator cpv = CertPathValidator.getInstance(CertPathValidator.getDefaultType());
+                    cpv.validate(cp, pkixParameters);
+
+                    Signature sign = Signature.getInstance(sodFile.getDigestEncryptionAlgorithm());
+                    sign.initVerify(sodFile.getDocSigningCertificate());
+                    sign.update(sodFile.getEContent());
+                    passiveAuthSuccess = sign.verify(sodFile.getEncryptedDigest());
                 }
             }
             catch (Exception e) {
@@ -445,7 +441,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Exception doInBackground(Void... params) {
             try {
-
                 CardService cardService = CardService.getInstance(isoDep);
                 cardService.open();
 
