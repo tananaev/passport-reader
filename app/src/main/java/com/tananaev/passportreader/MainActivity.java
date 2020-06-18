@@ -190,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
                         saveDate(expirationDateView, year, monthOfYear, dayOfMonth, KEY_EXPIRATION_DATE);
                     }
                 }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
+                dialog.showYearPickerFirst(true);
                 getFragmentManager().beginTransaction().add(dialog, null).commit();
             }
         });
@@ -204,6 +205,7 @@ public class MainActivity extends AppCompatActivity {
                         saveDate(birthDateView, year, monthOfYear, dayOfMonth, KEY_BIRTH_DATE);
                     }
                 }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
+                dialog.showYearPickerFirst(true);
                 getFragmentManager().beginTransaction().add(dialog, null).commit();
             }
         });
