@@ -536,17 +536,16 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra(ResultActivity.KEY_NATIONALITY, mrzInfo.getNationality());
 
                 String passiveAuthStr = "";
-                String chipAuthStr = "";
                 if(passiveAuthSuccess) {
                     passiveAuthStr = getString(R.string.pass);
-                }
-                else {
+                } else {
                     passiveAuthStr = getString(R.string.failed);
                 }
+
+                String chipAuthStr = "";
                 if (chipAuthSucceeded) {
                     chipAuthStr = getString(R.string.pass);
-                }
-                else {
+                } else {
                     chipAuthStr = getString(R.string.failed);
                 }
                 intent.putExtra(ResultActivity.KEY_PASSIVE_AUTH, passiveAuthStr);

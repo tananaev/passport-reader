@@ -23,16 +23,10 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Update MasterList file
-      run : wget "https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/ElekAusweise/CSCA/GermanMasterList.zip?__blob=publicationFile" -O- | zcat | openssl cms -inform DER -verify -noverify -out app/src/main/assets/newMasterList
+      run : wget "https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/ElekAusweise/CSCA/GermanMasterList.zip?__blob=publicationFile" -O- | zcat | openssl cms -inform DER -verify -noverify -out app/src/main/assets/masterList
 
     - name: Commit new masterList
       run: |
-        set +e
-        diff -s app/src/main/assets/masterList app/src/main/assets/newMasterList
-        if [ $? -ne 0 ]
-        then
-        echo "Sending new masterList"
-        mv app/src/main/assets/newMasterList app/src/main/assets/masterList
         git add .
         git config user.name "$(git --no-pager log --format=format:'%an' -n 1)"
         git config user.email "$(git --no-pager log --format=format:'%ae' -n 1)"
