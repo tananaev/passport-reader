@@ -27,9 +27,9 @@ jobs:
 
     - name: Commit new masterList
       run: |
+        set +e
         git add .
         git config user.name "$(git --no-pager log --format=format:'%an' -n 1)"
         git config user.email "$(git --no-pager log --format=format:'%ae' -n 1)"
         git commit -m "Update masterList"
         git push "https://${{ secrets.USERNAME }}:${{ secrets.TOKEN }}@github.com/${{ secrets.USERNAME }}/passport-reader.git"
-        fi
