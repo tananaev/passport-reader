@@ -333,8 +333,8 @@ public class MainActivity extends AppCompatActivity {
 
                 boolean paceSucceeded = false;
                 try {
-                    CardSecurityFile cardSecurityFile = new CardSecurityFile(service.getInputStream(PassportService.EF_CARD_SECURITY));
-                    Collection<SecurityInfo> securityInfoCollection = cardSecurityFile.getSecurityInfos();
+                    CardAccessFile cardAccessFile = new CardAccessFile(service.getInputStream(PassportService.EF_CARD_ACCESS));
+                    Collection<SecurityInfo> securityInfoCollection = cardAccessFile.getSecurityInfos();
                     for (SecurityInfo securityInfo : securityInfoCollection) {
                         if (securityInfo instanceof PACEInfo) {
                             PACEInfo paceInfo = (PACEInfo) securityInfo;
