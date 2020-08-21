@@ -42,21 +42,41 @@ import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import net.sf.scuba.smartcards.CardFileInputStream;
 import net.sf.scuba.smartcards.CardService;
 
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.ASN1Set;
+import org.bouncycastle.asn1.x509.Certificate;
 import org.jmrtd.BACKey;
 import org.jmrtd.BACKeySpec;
 import org.jmrtd.PassportService;
-import org.jmrtd.lds.CardSecurityFile;
-import org.jmrtd.lds.PACEInfo;
+import org.jmrtd.lds.ChipAuthenticationPublicKeyInfo;
+import org.jmrtd.lds.SODFile;
+import org.jmrtd.lds.CardAccessFile;
 import org.jmrtd.lds.SecurityInfo;
+import org.jmrtd.lds.icao.DG14File;
 import org.jmrtd.lds.icao.DG1File;
 import org.jmrtd.lds.icao.DG2File;
 import org.jmrtd.lds.icao.MRZInfo;
 import org.jmrtd.lds.iso19794.FaceImageInfo;
 import org.jmrtd.lds.iso19794.FaceInfo;
 
+import org.jmrtd.lds.PACEInfo;
+
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.InputStream;
+import java.math.BigInteger;
+import java.security.KeyStore;
+import java.security.MessageDigest;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.cert.CertPath;
+import java.security.cert.CertPathValidator;
+import java.security.cert.CertificateFactory;
+import java.security.cert.PKIXParameters;
+import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -65,6 +85,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static org.jmrtd.PassportService.DEFAULT_MAX_BLOCKSIZE;
 import static org.jmrtd.PassportService.NORMAL_MAX_TRANCEIVE_LENGTH;
@@ -320,23 +341,115 @@ public class MainActivity extends AppCompatActivity {
 
         private DG1File dg1File;
         private DG2File dg2File;
+        private DG14File dg14File;
+        private SODFile sodFile;
         private String imageBase64;
         private Bitmap bitmap;
+        private boolean chipAuthSucceeded = false;
+        private boolean passiveAuthSuccess = false;
+
+        private byte[] dg14Encoded = new byte[0];
+
+        private void doChipAuth(PassportService service) {
+            try {
+                CardFileInputStream dg14In = service.getInputStream(PassportService.EF_DG14);
+                dg14Encoded = IOUtils.toByteArray(dg14In);
+                ByteArrayInputStream dg14InByte = new ByteArrayInputStream(dg14Encoded);
+                dg14File = new DG14File(dg14InByte);
+
+                Collection<SecurityInfo> dg14FileSecurityInfos = dg14File.getSecurityInfos();
+                for (SecurityInfo securityInfo : dg14FileSecurityInfos) {
+                    if (securityInfo instanceof ChipAuthenticationPublicKeyInfo) {
+                        ChipAuthenticationPublicKeyInfo publicKeyInfo = (ChipAuthenticationPublicKeyInfo) securityInfo;
+                        BigInteger keyId = publicKeyInfo.getKeyId();
+                        PublicKey publicKey = publicKeyInfo.getSubjectPublicKey();
+                        String oid = publicKeyInfo.getObjectIdentifier();
+                        service.doEACCA(keyId, ChipAuthenticationPublicKeyInfo.ID_CA_ECDH_AES_CBC_CMAC_256, oid, publicKey);
+                        chipAuthSucceeded = true;
+                    }
+                }
+            }
+            catch (Exception e) {
+                Log.w(TAG, e);
+            }
+        }
+
+        private void doPassiveAuth() {
+            try {
+                MessageDigest digest = MessageDigest.getInstance(sodFile.getDigestAlgorithm());
+
+                Map<Integer,byte[]> dataHashes = sodFile.getDataGroupHashes();
+
+                byte[] dg14Hash = new byte[0];
+                if(chipAuthSucceeded) {
+                    dg14Hash = digest.digest(dg14Encoded);
+                }
+                byte[] dg1Hash = digest.digest(dg1File.getEncoded());
+                byte[] dg2Hash = digest.digest(dg2File.getEncoded());
+
+                if(Arrays.equals(dg1Hash, dataHashes.get(1)) && Arrays.equals(dg2Hash, dataHashes.get(2)) && (!chipAuthSucceeded || Arrays.equals(dg14Hash, dataHashes.get(14)))) {
+                    // We retrieve the CSCA from the german master list
+                    ASN1InputStream asn1InputStream = new ASN1InputStream(getAssets().open("masterList"));
+                    ASN1Primitive p;
+                    KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+                    keystore.load(null, null);
+                    CertificateFactory cf = CertificateFactory.getInstance("X.509");
+                    while((p = asn1InputStream.readObject()) != null) {
+                        ASN1Sequence asn1 = ASN1Sequence.getInstance(p);
+                        if (asn1 == null || asn1.size() == 0) {
+                            throw new IllegalArgumentException("null or empty sequence passed.");
+                        }
+                        if (asn1.size() != 2) {
+                            throw new IllegalArgumentException("Incorrect sequence size: " + asn1.size());
+                        }
+                        ASN1Set certSet = ASN1Set.getInstance(asn1.getObjectAt(1));
+
+                        for (int i = 0; i < certSet.size(); i++) {
+                            Certificate certificate = Certificate.getInstance(certSet.getObjectAt(i));
+
+                            byte[] pemCertificate = certificate.getEncoded();
+
+                            java.security.cert.Certificate javaCertificate = cf.generateCertificate(new ByteArrayInputStream(pemCertificate));
+                            keystore.setCertificateEntry(String.valueOf(i), javaCertificate);
+                        }
+                    }
+                    List<X509Certificate> docSigningCertificates = sodFile.getDocSigningCertificates();
+                    for (X509Certificate docSigningCertificate : docSigningCertificates) {
+                        docSigningCertificate.checkValidity();
+                    }
+
+                    // We check if the certificate is signed by a trusted CSCA
+                    // TODO: verify if certificate is revoked
+                    CertPath cp = cf.generateCertPath(docSigningCertificates);
+                    PKIXParameters pkixParameters = new PKIXParameters(keystore);
+                    pkixParameters.setRevocationEnabled(false);
+                    CertPathValidator cpv = CertPathValidator.getInstance(CertPathValidator.getDefaultType());
+                    cpv.validate(cp, pkixParameters);
+
+                    Signature sign = Signature.getInstance(sodFile.getDigestEncryptionAlgorithm());
+                    sign.initVerify(sodFile.getDocSigningCertificate());
+                    sign.update(sodFile.getEContent());
+                    passiveAuthSuccess = sign.verify(sodFile.getEncryptedDigest());
+                }
+            }
+            catch (Exception e) {
+                Log.w(TAG, e);
+            }
+        }
 
         @Override
         protected Exception doInBackground(Void... params) {
             try {
-
                 CardService cardService = CardService.getInstance(isoDep);
                 cardService.open();
 
-                PassportService service = new PassportService(cardService, NORMAL_MAX_TRANCEIVE_LENGTH, DEFAULT_MAX_BLOCKSIZE, true, false);
+                PassportService service = new PassportService(cardService, NORMAL_MAX_TRANCEIVE_LENGTH, DEFAULT_MAX_BLOCKSIZE, false, false);
                 service.open();
 
                 boolean paceSucceeded = false;
                 try {
-                    CardSecurityFile cardSecurityFile = new CardSecurityFile(service.getInputStream(PassportService.EF_CARD_SECURITY));
-                    Collection<SecurityInfo> securityInfoCollection = cardSecurityFile.getSecurityInfos();
+                    CardAccessFile cardAccessFile = new CardAccessFile(service.getInputStream(PassportService.EF_CARD_ACCESS));
+                    Collection<SecurityInfo> securityInfoCollection = cardAccessFile.getSecurityInfos();
                     for (SecurityInfo securityInfo : securityInfoCollection) {
                         if (securityInfo instanceof PACEInfo) {
                             PACEInfo paceInfo = (PACEInfo) securityInfo;
@@ -363,6 +476,15 @@ public class MainActivity extends AppCompatActivity {
 
                 CardFileInputStream dg2In = service.getInputStream(PassportService.EF_DG2);
                 dg2File = new DG2File(dg2In);
+
+                CardFileInputStream sodIn = service.getInputStream(PassportService.EF_SOD);
+                sodFile = new SODFile(sodIn);
+
+                // We perform Chip Authentication using Data Group 14
+                doChipAuth(service);
+
+                // Then Passive Authentication using SODFile
+                doPassiveAuth();
 
                 List<FaceImageInfo> allFaceImageInfos = new ArrayList<>();
                 List<FaceInfo> faceInfos = dg2File.getFaceInfos();
@@ -411,6 +533,22 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra(ResultActivity.KEY_GENDER, mrzInfo.getGender().toString());
                 intent.putExtra(ResultActivity.KEY_STATE, mrzInfo.getIssuingState());
                 intent.putExtra(ResultActivity.KEY_NATIONALITY, mrzInfo.getNationality());
+
+                String passiveAuthStr = "";
+                if(passiveAuthSuccess) {
+                    passiveAuthStr = getString(R.string.pass);
+                } else {
+                    passiveAuthStr = getString(R.string.failed);
+                }
+
+                String chipAuthStr = "";
+                if (chipAuthSucceeded) {
+                    chipAuthStr = getString(R.string.pass);
+                } else {
+                    chipAuthStr = getString(R.string.failed);
+                }
+                intent.putExtra(ResultActivity.KEY_PASSIVE_AUTH, passiveAuthStr);
+                intent.putExtra(ResultActivity.KEY_CHIP_AUTH, chipAuthStr);
 
                 if (bitmap != null) {
                     if (encodePhotoToBase64) {
