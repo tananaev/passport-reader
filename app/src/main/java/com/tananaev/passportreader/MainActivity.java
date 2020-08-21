@@ -45,7 +45,7 @@ import net.sf.scuba.smartcards.CardService;
 import org.jmrtd.BACKey;
 import org.jmrtd.BACKeySpec;
 import org.jmrtd.PassportService;
-import org.jmrtd.lds.CardSecurityFile;
+import org.jmrtd.lds.CardAccessFile;
 import org.jmrtd.lds.PACEInfo;
 import org.jmrtd.lds.SecurityInfo;
 import org.jmrtd.lds.icao.DG1File;
@@ -335,8 +335,8 @@ public class MainActivity extends AppCompatActivity {
 
                 boolean paceSucceeded = false;
                 try {
-                    CardSecurityFile cardSecurityFile = new CardSecurityFile(service.getInputStream(PassportService.EF_CARD_SECURITY));
-                    Collection<SecurityInfo> securityInfoCollection = cardSecurityFile.getSecurityInfos();
+                    CardAccessFile cardAccessFile = new CardAccessFile(service.getInputStream(PassportService.EF_CARD_ACCESS));
+                    Collection<SecurityInfo> securityInfoCollection = cardAccessFile.getSecurityInfos();
                     for (SecurityInfo securityInfo : securityInfoCollection) {
                         if (securityInfo instanceof PACEInfo) {
                             PACEInfo paceInfo = (PACEInfo) securityInfo;
