@@ -43,7 +43,6 @@ import net.sf.scuba.smartcards.CardFileInputStream;
 import net.sf.scuba.smartcards.CardService;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.text.WordUtils;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
@@ -529,9 +528,9 @@ public class MainActivity extends AppCompatActivity {
 
                 MRZInfo mrzInfo = dg1File.getMRZInfo();
 
-                intent.putExtra(ResultActivity.KEY_FIRST_NAME, WordUtils.capitalizeFully(mrzInfo.getSecondaryIdentifier().replace("<", " ")));
-                intent.putExtra(ResultActivity.KEY_LAST_NAME, WordUtils.capitalizeFully(mrzInfo.getPrimaryIdentifier().replace("<", " ")));
-                intent.putExtra(ResultActivity.KEY_GENDER, WordUtils.capitalizeFully(mrzInfo.getGender().toString()));
+                intent.putExtra(ResultActivity.KEY_FIRST_NAME, mrzInfo.getSecondaryIdentifier().replace("<", " "));
+                intent.putExtra(ResultActivity.KEY_LAST_NAME, mrzInfo.getPrimaryIdentifier().replace("<", " "));
+                intent.putExtra(ResultActivity.KEY_GENDER, mrzInfo.getGender().toString());
                 intent.putExtra(ResultActivity.KEY_STATE, mrzInfo.getIssuingState());
                 intent.putExtra(ResultActivity.KEY_NATIONALITY, mrzInfo.getNationality());
 
