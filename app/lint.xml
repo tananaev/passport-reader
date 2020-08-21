@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <issue id="InvalidPackage">
+        <ignore path="*/org.bouncycastle/*"/>
+        <ignore path="*/org.apache.commons/*"/>
+        <ignore path="*/edu.ucar/*"/>
+        <ignore path="*/com.github.mhshams/*"/>
+    </issue>
+</lint>

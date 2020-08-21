@@ -30,6 +30,8 @@ public class ResultActivity extends AppCompatActivity {
     public static final String KEY_NATIONALITY = "nationality";
     public static final String KEY_PHOTO = "photo";
     public static final String KEY_PHOTO_BASE64 = "photoBase64";
+    public static final String KEY_PASSIVE_AUTH = "passiveAuth";
+    public static final String KEY_CHIP_AUTH = "chipAuth";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +43,8 @@ public class ResultActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.output_gender)).setText(getIntent().getStringExtra(KEY_GENDER));
         ((TextView) findViewById(R.id.output_state)).setText(getIntent().getStringExtra(KEY_STATE));
         ((TextView) findViewById(R.id.output_nationality)).setText(getIntent().getStringExtra(KEY_NATIONALITY));
+        ((TextView) findViewById(R.id.output_passive_auth)).setText(getIntent().getStringExtra(KEY_PASSIVE_AUTH));
+        ((TextView) findViewById(R.id.output_chip_auth)).setText(getIntent().getStringExtra(KEY_CHIP_AUTH));
 
         if (getIntent().hasExtra(KEY_PHOTO)) {
             ((ImageView) findViewById(R.id.view_photo)).setImageBitmap((Bitmap) getIntent().getParcelableExtra(KEY_PHOTO));
