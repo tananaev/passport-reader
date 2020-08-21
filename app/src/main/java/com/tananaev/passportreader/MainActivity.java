@@ -44,6 +44,7 @@ import net.sf.scuba.smartcards.CardService;
 import org.jmrtd.BACKey;
 import org.jmrtd.BACKeySpec;
 import org.jmrtd.PassportService;
+import org.jmrtd.lds.CardAccessFile;
 import org.jmrtd.lds.CardSecurityFile;
 import org.jmrtd.lds.SecurityInfo;
 import org.jmrtd.lds.icao.COMFile;
