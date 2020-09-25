@@ -2,9 +2,10 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 29
+    ndkVersion '21.3.6528147'
 
     defaultConfig {
-        applicationId "com.tananaev.passportreader"
+        applicationId 'com.tananaev.passportreader'
         minSdkVersion 15
         targetSdkVersion 29
         versionCode 16
@@ -16,7 +17,7 @@ android {
         exclude 'META-INF/NOTICE'
     }
     dexOptions {
-        javaMaxHeapSize "4g"
+        javaMaxHeapSize '4g'
     }
     compileOptions {
         sourceCompatibility = 1.8
