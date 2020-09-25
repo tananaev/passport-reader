@@ -31,7 +31,7 @@ dependencies {
     implementation 'org.jmrtd:jmrtd:0.7.18'
     implementation 'net.sf.scuba:scuba-sc-android:0.0.18'
     implementation 'com.madgag.spongycastle:prov:1.54.0.0'
-    implementation 'edu.ucar:jj2000:5.2'
+    implementation 'com.gemalto.jp2:jp2-android:1.0'
     implementation 'com.github.mhshams:jnbis:1.1.0'
     implementation 'org.bouncycastle:bcpkix-jdk15on:1.65'
     implementation 'commons-io:commons-io:2.6'
