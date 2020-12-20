@@ -1,0 +1,3 @@
+Android app that uses the NFC chip to communicate with an electronic passport. It supports action, so third party apps can use it to retrieve passport data. Please visit website for more information.
+The app is completely open source, so anyone is welcome to validate that it doesn't collect any personal information. Data is kept only in memory and removed as soon as you close the app. Passport data is never uploaded to any remote server.
+App had been successfully tested with Russian passport. It might not work with some other passports. If it doesn't work, please create GitHub issue to help me fix the issue instead of leaving negative feedback.
