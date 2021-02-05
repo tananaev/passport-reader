@@ -430,14 +430,14 @@ public class MainActivity extends AppCompatActivity {
 
                     String sodDigestEncryptionAlgorithm = sodFile.getDigestEncryptionAlgorithm();
 
-                    boolean bSSA = false;
+                    boolean isSSA = false;
                     if (sodDigestEncryptionAlgorithm.equals("SSAwithRSA/PSS")) {
                         sodDigestEncryptionAlgorithm = "SHA256withRSA/PSS";
-                        bSSA = true;
+                        isSSA = true;
                     }
 
                     Signature sign = Signature.getInstance(sodDigestEncryptionAlgorithm);
-                    if (bSSA) {
+                    if (isSSA) {
                         sign.setParameter(new PSSParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, 32, 1));
                     }
 
