@@ -77,6 +77,8 @@ import java.security.cert.CertPathValidator;
 import java.security.cert.CertificateFactory;
 import java.security.cert.PKIXParameters;
 import java.security.cert.X509Certificate;
+import java.security.spec.MGF1ParameterSpec;
+import java.security.spec.PSSParameterSpec;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -426,7 +428,19 @@ public class MainActivity extends AppCompatActivity {
                     CertPathValidator cpv = CertPathValidator.getInstance(CertPathValidator.getDefaultType());
                     cpv.validate(cp, pkixParameters);
 
-                    Signature sign = Signature.getInstance(sodFile.getDigestEncryptionAlgorithm());
+                    String sodDigestEncryptionAlgorithm = sodFile.getDigestEncryptionAlgorithm();
+
+                    boolean isSSA = false;
+                    if (sodDigestEncryptionAlgorithm.equals("SSAwithRSA/PSS")) {
+                        sodDigestEncryptionAlgorithm = "SHA256withRSA/PSS";
+                        isSSA = true;
+                    }
+
+                    Signature sign = Signature.getInstance(sodDigestEncryptionAlgorithm);
+                    if (isSSA) {
+                        sign.setParameter(new PSSParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, 32, 1));
+                    }
+
                     sign.initVerify(sodFile.getDocSigningCertificate());
                     sign.update(sodFile.getEContent());
                     passiveAuthSuccess = sign.verify(sodFile.getEncryptedDigest());
