@@ -1,6 +1,6 @@
 # e-Passport NFC Reader
 
-[![Get it on Google Play](http://www.tananaev.com/badges/google-play.svg)](https://play.google.com/store/apps/details?id=com.tananaev.passportreader)
+[![Get it on Google Play](http://www.tananaev.com/badges/google-play.svg)](https://play.google.com/store/apps/details?id=com.tananaev.passportreader) [![Get it on F-Droid](http://www.tananaev.com/badges/f-droid.svg)](https://f-droid.org/packages/com.tananaev.passportreader)
 
 Android app that uses the NFC chip to communicate with an electronic passport.
 
