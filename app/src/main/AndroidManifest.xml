@@ -13,6 +13,7 @@
         android:theme="@style/AppTheme">
 
         <activity
+            android:exported="true"
             android:name=".MainActivity"
             android:screenOrientation="portrait">
 
@@ -37,6 +38,7 @@
         </activity>
 
         <activity
+            android:exported="true"
             android:name=".ResultActivity"
             android:screenOrientation="portrait" />
 

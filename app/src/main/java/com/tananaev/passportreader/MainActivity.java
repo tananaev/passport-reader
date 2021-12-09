@@ -220,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
         if (adapter != null) {
             Intent intent = new Intent(getApplicationContext(), this.getClass());
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_MUTABLE);
             String[][] filter = new String[][]{new String[]{"android.nfc.tech.IsoDep"}};
             adapter.enableForegroundDispatch(this, pendingIntent, null, filter);
         }
