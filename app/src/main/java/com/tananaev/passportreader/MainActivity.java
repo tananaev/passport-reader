@@ -428,7 +428,7 @@ public class MainActivity extends AppCompatActivity {
                     CertPathValidator cpv = CertPathValidator.getInstance(CertPathValidator.getDefaultType());
                     cpv.validate(cp, pkixParameters);
 
-                    String sodDigestEncryptionAlgorithm = sodFile.getDigestEncryptionAlgorithm();
+                    String sodDigestEncryptionAlgorithm = sodFile.getDocSigningCertificate().getSigAlgName();
 
                     boolean isSSA = false;
                     if (sodDigestEncryptionAlgorithm.equals("SSAwithRSA/PSS")) {
