@@ -8,8 +8,8 @@ android {
         applicationId 'com.tananaev.passportreader'
         minSdkVersion 15
         targetSdkVersion 31
-        versionCode 16
-        versionName "2.1"
+        versionCode 17
+        versionName "2.2"
         multiDexEnabled = true
     }
     packagingOptions {
