@@ -1,33 +1,29 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 32
     ndkVersion '23.1.7779620'
 
     defaultConfig {
         applicationId 'com.tananaev.passportreader'
         minSdkVersion 15
-        targetSdkVersion 31
-        versionCode 17
-        versionName "2.2"
+        targetSdkVersion 32
+        versionCode 18
+        versionName "2.3"
         multiDexEnabled = true
     }
+    namespace "com.tananaev.passportreader"
+
     packagingOptions {
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/NOTICE'
-    }
-    dexOptions {
-        javaMaxHeapSize '4g'
-    }
-    compileOptions {
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
+        resources {
+            excludes += ['META-INF/LICENSE', 'META-INF/NOTICE']
+        }
     }
 }
 
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'com.google.android.material:material:1.6.0'
     implementation 'com.wdullaer:materialdatetimepicker:3.5.2'
     implementation 'org.jmrtd:jmrtd:0.7.18'
     implementation 'net.sf.scuba:scuba-sc-android:0.0.18'
