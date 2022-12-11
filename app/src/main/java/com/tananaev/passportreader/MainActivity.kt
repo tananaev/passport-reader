@@ -222,6 +222,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun doInBackground(vararg params: Void?): Exception? {
             try {
+                isoDep.timeout = 10000
                 val cardService = CardService.getInstance(isoDep)
                 cardService.open()
                 val service = PassportService(
