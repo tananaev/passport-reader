@@ -236,7 +236,7 @@ class MainActivity : AppCompatActivity() {
                 try {
                     val cardAccessFile = CardAccessFile(service.getInputStream(PassportService.EF_CARD_ACCESS))
                     val securityInfoCollection = cardAccessFile.securityInfos
-                    for (securityInfo: SecurityInfo? in securityInfoCollection) {
+                    for (securityInfo: SecurityInfo in securityInfoCollection) {
                         if (securityInfo is PACEInfo) {
                             service.doPACE(
                                 bacKey,
