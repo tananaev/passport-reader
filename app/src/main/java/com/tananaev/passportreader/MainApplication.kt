@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Anton Tananaev (anton.tananaev@gmail.com)
+ * Copyright 2016 - 2022 Anton Tananaev (anton.tananaev@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tananaev.passportreader;
+package com.tananaev.passportreader
 
-import androidx.multidex.MultiDexApplication;
+import androidx.multidex.MultiDexApplication
+import org.spongycastle.jce.provider.BouncyCastleProvider
+import java.security.Security
 
-import org.spongycastle.jce.provider.BouncyCastleProvider;
-
-import java.security.Security;
-
-public class MainApplication extends MultiDexApplication {
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        Security.insertProviderAt(new BouncyCastleProvider(), 1);
+class MainApplication : MultiDexApplication() {
+    override fun onCreate() {
+        super.onCreate()
+        Security.insertProviderAt(BouncyCastleProvider(), 1)
     }
-
 }

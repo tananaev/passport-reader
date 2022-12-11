@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2017 Anton Tananaev (anton.tananaev@gmail.com)
+ * Copyright 2016 - 2022 Anton Tananaev (anton.tananaev@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,42 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tananaev.passportreader;
+package com.tananaev.passportreader
 
-import android.graphics.Bitmap;
-import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.os.Bundle
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 
-public class ResultActivity extends AppCompatActivity {
-
-    public static final String KEY_FIRST_NAME = "firstName";
-    public static final String KEY_LAST_NAME = "lastName";
-    public static final String KEY_GENDER = "gender";
-    public static final String KEY_STATE = "state";
-    public static final String KEY_NATIONALITY = "nationality";
-    public static final String KEY_PHOTO = "photo";
-    public static final String KEY_PHOTO_BASE64 = "photoBase64";
-    public static final String KEY_PASSIVE_AUTH = "passiveAuth";
-    public static final String KEY_CHIP_AUTH = "chipAuth";
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_result);
-
-        ((TextView) findViewById(R.id.output_first_name)).setText(getIntent().getStringExtra(KEY_FIRST_NAME));
-        ((TextView) findViewById(R.id.output_last_name)).setText(getIntent().getStringExtra(KEY_LAST_NAME));
-        ((TextView) findViewById(R.id.output_gender)).setText(getIntent().getStringExtra(KEY_GENDER));
-        ((TextView) findViewById(R.id.output_state)).setText(getIntent().getStringExtra(KEY_STATE));
-        ((TextView) findViewById(R.id.output_nationality)).setText(getIntent().getStringExtra(KEY_NATIONALITY));
-        ((TextView) findViewById(R.id.output_passive_auth)).setText(getIntent().getStringExtra(KEY_PASSIVE_AUTH));
-        ((TextView) findViewById(R.id.output_chip_auth)).setText(getIntent().getStringExtra(KEY_CHIP_AUTH));
-
-        if (getIntent().hasExtra(KEY_PHOTO)) {
-            ((ImageView) findViewById(R.id.view_photo)).setImageBitmap((Bitmap) getIntent().getParcelableExtra(KEY_PHOTO));
+class ResultActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_result)
+        findViewById<TextView>(R.id.output_first_name).text = intent.getStringExtra(KEY_FIRST_NAME)
+        findViewById<TextView>(R.id.output_last_name).text = intent.getStringExtra(KEY_LAST_NAME)
+        findViewById<TextView>(R.id.output_gender).text = intent.getStringExtra(KEY_GENDER)
+        findViewById<TextView>(R.id.output_state).text = intent.getStringExtra(KEY_STATE)
+        findViewById<TextView>(R.id.output_nationality).text = intent.getStringExtra(KEY_NATIONALITY)
+        findViewById<TextView>(R.id.output_passive_auth).text = intent.getStringExtra(KEY_PASSIVE_AUTH)
+        findViewById<TextView>(R.id.output_chip_auth).text = intent.getStringExtra(KEY_CHIP_AUTH)
+        if (intent.hasExtra(KEY_PHOTO)) {
+            @Suppress("DEPRECATION")
+            findViewById<ImageView>(R.id.view_photo).setImageBitmap(intent.getParcelableExtra(KEY_PHOTO))
         }
     }
 
+    companion object {
+        const val KEY_FIRST_NAME = "firstName"
+        const val KEY_LAST_NAME = "lastName"
+        const val KEY_GENDER = "gender"
+        const val KEY_STATE = "state"
+        const val KEY_NATIONALITY = "nationality"
+        const val KEY_PHOTO = "photo"
+        const val KEY_PHOTO_BASE64 = "photoBase64"
+        const val KEY_PASSIVE_AUTH = "passiveAuth"
+        const val KEY_CHIP_AUTH = "chipAuth"
+    }
 }
