@@ -242,7 +242,7 @@ class MainActivity : AppCompatActivity() {
                                 bacKey,
                                 securityInfo.objectIdentifier,
                                 PACEInfo.toParameterSpec(securityInfo.parameterId),
-                                null
+                                null,
                             )
                             paceSucceeded = true
                         }
