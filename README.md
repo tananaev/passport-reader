@@ -4,57 +4,6 @@
 
 Android app that uses the NFC chip to communicate with an electronic passport.
 
-Third party apps can use custom intent action to use this app to retrieve passport data.
-
-Custom action id:
-- `com.tananaev.passportreader.REQUEST`
-
-The following string extras can be set to allow pre-filling of input fields:
-- `passportNumber` - String
-- `dateOfExpiry` - String in format YYYY-MM-DD
-- `dateOfBirth` - String in format YYYY-MM-DD
-- `photoAsBase64` - Boolean indicating whether to return photo as base64 encoded image (default false)
-
-Available data keys:
-- `firstName` - String
-- `lastName` - String
-- `gender` - String
-- `state` - String
-- `nationality` - String
-- `photo` - Bitmap (if `photoAsBase64` is false)
-- `photoBase64` - String (if `photoAsBase64` is true)
-
-Usage example:
-
-```java
-public class LoginActivity extends AppCompatActivity {
-
-    ...
-
-    private void requestPassportData() {
-        Intent intent = new Intent();
-        intent.setAction("com.tananaev.passportreader.REQUEST");
-        startActivityForResult(intent, 0);
-    }
-
-    ...
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK) {
-            String name = data.getStringExtra("firstName") + " " + data.getStringExtra("lastName");
-            ...
-        }
-    }
-
-    ...
-
-}
-
-```
-
-For full usage example see "sample" module in the repository.
-
 ## Contacts
 
 Author - Anton Tananaev ([anton.tananaev@gmail.com](mailto:anton.tananaev@gmail.com))

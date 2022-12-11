@@ -1,9 +1,0 @@
-<resources>
-
-    <string name="app_name">Sample</string>
-    
-    <string name="prompt_first_name">Name</string>
-    <string name="prompt_last_name">Surname</string>
-    <string name="button_load">Read passport</string>
-
-</resources>
