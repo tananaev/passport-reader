@@ -195,7 +195,7 @@ class MainActivity : AppCompatActivity() {
                 val passportNumber = preferences.getString(KEY_PASSPORT_NUMBER, null)
                 val expirationDate = convertDate(preferences.getString(KEY_EXPIRATION_DATE, null))
                 val birthDate = convertDate(preferences.getString(KEY_BIRTH_DATE, null))
-                if (!passportNumber.isNullOrEmpty() && expirationDate.isNullOrEmpty() && birthDate.isNullOrEmpty()) {
+                if (!passportNumber.isNullOrEmpty() && !expirationDate.isNullOrEmpty() && !birthDate.isNullOrEmpty()) {
                     val bacKey: BACKeySpec = BACKey(passportNumber, birthDate, expirationDate)
                     ReadTask(IsoDep.get(tag), bacKey).execute()
                     mainLayout.visibility = View.GONE
