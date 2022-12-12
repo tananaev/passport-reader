@@ -12,35 +12,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity
-            android:exported="true"
-            android:name=".MainActivity"
-            android:screenOrientation="fullSensor">
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="com.tananaev.passportreader.REQUEST" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-
-            <!--<intent-filter>
-                <action android:name="android.nfc.action.TECH_DISCOVERED" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.nfc.action.TECH_DISCOVERED"
-                android:resource="@xml/nfc_tech_filter" />-->
-
-        </activity>
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-9061647223840223~3001602354"/>
 
         <activity
             android:exported="true"
             android:name=".ResultActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="fullSensor" />
 
     </application>
 

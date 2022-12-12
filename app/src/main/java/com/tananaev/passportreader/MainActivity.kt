@@ -73,7 +73,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
-class MainActivity : AppCompatActivity() {
+abstract class MainActivity : AppCompatActivity() {
 
     private lateinit var passportNumberView: EditText
     private lateinit var expirationDateView: EditText
