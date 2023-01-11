@@ -34,6 +34,7 @@ import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import com.tananaev.passportreader.ImageUtil.decodeImage
@@ -164,11 +165,22 @@ abstract class MainActivity : AppCompatActivity() {
         super.onResume()
         val adapter = NfcAdapter.getDefaultAdapter(this)
         if (adapter != null) {
-            val intent = Intent(applicationContext, this.javaClass)
-            intent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-            val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_MUTABLE)
-            val filter = arrayOf(arrayOf("android.nfc.tech.IsoDep"))
-            adapter.enableForegroundDispatch(this, pendingIntent, null, filter)
+            if (adapter.isEnabled) {
+                val intent = Intent(applicationContext, this.javaClass)
+                intent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+                val pendingIntent =
+                    PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_MUTABLE)
+                val filter = arrayOf(arrayOf("android.nfc.tech.IsoDep"))
+                adapter.enableForegroundDispatch(this, pendingIntent, null, filter)
+            } else {
+                Toast.makeText(
+                    getApplicationContext(),
+                    "Please activate NFC and press Back to return to the application!",
+                    Toast.LENGTH_LONG
+                ).show();
+                Thread.sleep(5_000)
+                startActivity(Intent(android.provider.Settings.ACTION_NFC_SETTINGS));
+            }
         }
         if (passportNumberFromIntent) {
             // When the passport number field is populated from the caller, we hide the
