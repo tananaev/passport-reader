@@ -22,4 +22,5 @@
     <string name="pass">Pass</string>
     <string name="failed">Failed</string>
 
+    <string name="enable_nfc_toast">Please activate NFC and press Back to return to the application!</string>
 </resources>

@@ -175,7 +175,7 @@ abstract class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(
                     applicationContext,
-                    "Please activate NFC and press Back to return to the application!",
+                    getString(R.string.enable_nfc_toast),
                     Toast.LENGTH_LONG
                 ).show();
                 Thread.sleep(5_000)
