@@ -174,7 +174,7 @@ abstract class MainActivity : AppCompatActivity() {
                 adapter.enableForegroundDispatch(this, pendingIntent, null, filter)
             } else {
                 Toast.makeText(
-                    getApplicationContext(),
+                    applicationContext,
                     "Please activate NFC and press Back to return to the application!",
                     Toast.LENGTH_LONG
                 ).show();
