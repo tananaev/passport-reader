@@ -8,7 +8,7 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Update MasterList file
       run : wget "https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/ElekAusweise/CSCA/GermanMasterList.zip?__blob=publicationFile" -O- | zcat | openssl cms -inform DER -verify -noverify -out app/src/main/assets/masterList
