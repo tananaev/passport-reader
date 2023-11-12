@@ -72,13 +72,11 @@ tasks.register('copyFirebaseConfig', Copy) {
     rename('passport-reader.json', 'google-services.json')
 }
 afterEvaluate {
-    tasks.matching { task ->
-        task.name.contains('Google') && !task.name.endsWith('GoogleServices')
-    }.configureEach { task ->
-        task.dependsOn copyFirebaseConfig
+    tasks.matching { it.name.contains('Google') }.configureEach { task ->
+        if (task.name.contains('Regular')) {
+            task.enabled false
+        } else {
+            task.dependsOn copyFirebaseConfig
+        }
     }
-}
-android.applicationVariants.configureEach { variant ->
-    tasks.named("process${variant.name.capitalize()}GoogleServices")
-            .get().enabled(variant.flavorName == 'google')
 }
