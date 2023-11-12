@@ -1,28 +1,41 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
 }
 
 android {
-    compileSdkVersion 33
+    compileSdk 34
     ndkVersion '23.1.7779620'
-
     defaultConfig {
         applicationId 'com.tananaev.passportreader'
         minSdkVersion 19
-        targetSdkVersion 33
-        versionCode 19
-        versionName '3.0'
+        targetSdkVersion 34
+        versionCode 20
+        versionName '3.1'
         multiDexEnabled = true
     }
     namespace 'com.tananaev.passportreader'
 
-    flavorDimensions 'default'
+    buildFeatures {
+        flavorDimensions = ['default']
+    }
     productFlavors {
         regular {
             isDefault = true
+            ext.enableCrashlytics = false
         }
         google
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     packagingOptions {
@@ -35,8 +48,8 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'com.google.android.material:material:1.7.0'
-    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'com.google.android.material:material:1.10.0'
+    implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'com.wdullaer:materialdatetimepicker:3.5.2'
     implementation 'org.jmrtd:jmrtd:0.7.18'
     implementation 'net.sf.scuba:scuba-sc-android:0.0.18'
@@ -44,26 +57,28 @@ dependencies {
     implementation 'com.gemalto.jp2:jp2-android:1.0.3'
     implementation 'com.github.mhshams:jnbis:1.1.0'
     implementation 'org.bouncycastle:bcpkix-jdk15on:1.65' // do not update
-    implementation 'commons-io:commons-io:2.8.0'
-    googleImplementation platform('com.google.firebase:firebase-bom:31.0.0')
+    implementation 'commons-io:commons-io:2.11.0'
+    googleImplementation platform('com.google.firebase:firebase-bom:32.5.0')
     googleImplementation 'com.google.firebase:firebase-analytics-ktx'
     googleImplementation 'com.google.firebase:firebase-crashlytics'
-    googleImplementation 'com.google.android.gms:play-services-ads:21.3.0'
+    googleImplementation 'com.google.android.gms:play-services-ads:22.5.0'
     googleImplementation 'com.google.android.play:review-ktx:2.0.1'
 }
 
-if (getGradle().getStartParameter().getTaskRequests().toString().contains('Google')) {
-    apply plugin: 'com.google.gms.google-services'
-    apply plugin: 'com.google.firebase.crashlytics'
-
-    task copyJson(type: Copy) {
-        from '../../environment/firebase'
-        into '.'
-        include 'passport-reader.json'
-        rename('passport-reader.json', 'google-services.json')
+tasks.register('copyFirebaseConfig', Copy) {
+    from '../../environment/firebase'
+    into '.'
+    include 'passport-reader.json'
+    rename('passport-reader.json', 'google-services.json')
+}
+afterEvaluate {
+    tasks.matching { task ->
+        task.name.contains('Google') && !task.name.endsWith('GoogleServices')
+    }.configureEach { task ->
+        task.dependsOn copyFirebaseConfig
     }
-
-    afterEvaluate {
-        preBuild.dependsOn copyJson
-    }
+}
+android.applicationVariants.configureEach { variant ->
+    tasks.named("process${variant.name.capitalize()}GoogleServices")
+            .get().enabled(variant.flavorName == 'google')
 }
