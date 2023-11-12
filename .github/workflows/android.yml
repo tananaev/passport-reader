@@ -17,4 +17,4 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
-    - run: ./gradlew build
+    - run: ./gradlew :app:assembleRegularDebug
