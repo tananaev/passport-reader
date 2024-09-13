@@ -57,6 +57,7 @@
                     android:id="@+id/input_passport_number"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:inputType="textCapCharacters"
                     android:hint="@string/input_passport_number" />
 
             </com.google.android.material.textfield.TextInputLayout>
