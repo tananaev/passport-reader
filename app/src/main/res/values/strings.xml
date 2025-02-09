@@ -18,6 +18,7 @@
     <string name="result_nationality">Nationality</string>
     <string name="result_passive_auth">Passive Authentication</string>
     <string name="result_chip_auth">Chip Authentication</string>
+    <string name="result_active_auth">Active Authentication</string>
 
     <string name="pass">Pass</string>
     <string name="failed">Failed</string>

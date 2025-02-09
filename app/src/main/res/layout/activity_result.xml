@@ -82,6 +82,12 @@
                     android:text="@string/result_chip_auth"
                     android:textAppearance="@style/TextAppearance.AppCompat.Subhead" />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/result_active_auth"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead" />
+
             </LinearLayout>
 
             <LinearLayout
@@ -137,6 +143,13 @@
 
                 <TextView
                     android:id="@+id/output_chip_auth"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                    tools:text="No" />
+
+                <TextView
+                    android:id="@+id/output_active_auth"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
