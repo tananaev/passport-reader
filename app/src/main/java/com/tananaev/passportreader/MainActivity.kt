@@ -39,6 +39,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.tananaev.passportreader.ImageUtil.decodeImage
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog
 import net.sf.scuba.smartcards.CardService
+import net.sf.scuba.util.Hex
 import org.apache.commons.io.IOUtils
 import org.bouncycastle.asn1.ASN1InputStream
 import org.bouncycastle.asn1.ASN1Primitive
@@ -48,12 +49,14 @@ import org.bouncycastle.asn1.x509.Certificate
 import org.jmrtd.BACKey
 import org.jmrtd.BACKeySpec
 import org.jmrtd.PassportService
+import org.jmrtd.Util
 import org.jmrtd.lds.CardAccessFile
 import org.jmrtd.lds.ChipAuthenticationPublicKeyInfo
 import org.jmrtd.lds.PACEInfo
 import org.jmrtd.lds.SODFile
 import org.jmrtd.lds.SecurityInfo
 import org.jmrtd.lds.icao.DG14File
+import org.jmrtd.lds.icao.DG15File
 import org.jmrtd.lds.icao.DG1File
 import org.jmrtd.lds.icao.DG2File
 import org.jmrtd.lds.iso19794.FaceImageInfo
@@ -62,6 +65,7 @@ import java.io.DataInputStream
 import java.io.InputStream
 import java.security.KeyStore
 import java.security.MessageDigest
+import java.security.SecureRandom
 import java.security.Signature
 import java.security.cert.CertPathValidator
 import java.security.cert.CertificateFactory
@@ -72,6 +76,7 @@ import java.security.spec.PSSParameterSpec
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.crypto.Cipher
 
 abstract class MainActivity : AppCompatActivity() {
 
@@ -210,12 +215,15 @@ abstract class MainActivity : AppCompatActivity() {
         private lateinit var dg1File: DG1File
         private lateinit var dg2File: DG2File
         private lateinit var dg14File: DG14File
+        private lateinit var dg15File: DG15File
         private lateinit var sodFile: SODFile
         private var imageBase64: String? = null
         private var bitmap: Bitmap? = null
         private var chipAuthSucceeded = false
         private var passiveAuthSuccess = false
+        private var activeAuthSuccess = false
         private lateinit var dg14Encoded: ByteArray
+        private lateinit var dg15Encoded: ByteArray
 
         override fun doInBackground(vararg params: Void?): Exception? {
             try {
@@ -264,6 +272,7 @@ abstract class MainActivity : AppCompatActivity() {
                 sodFile = SODFile(sodIn)
 
                 doChipAuth(service)
+                doActiveAuth(service)
                 doPassiveAuth()
 
                 val allFaceImageInfo: MutableList<FaceImageInfo> = ArrayList()
@@ -304,6 +313,55 @@ abstract class MainActivity : AppCompatActivity() {
                         chipAuthSucceeded = true
                     }
                 }
+            } catch (e: Exception) {
+                Log.w(TAG, e)
+            }
+        }
+
+        private fun doActiveAuth(service: PassportService) {
+            try {
+                val dg15In = service.getInputStream(PassportService.EF_DG15)
+                dg15Encoded = IOUtils.toByteArray(dg15In)
+                val dg15InByte = ByteArrayInputStream(dg15Encoded)
+                dg15File = DG15File(dg15InByte)
+                val random = SecureRandom()
+                val rndIFD = ByteArray(8)
+                random.nextBytes(rndIFD)
+                // see https://sourceforge.net/p/jmrtd/discussion/580232/thread/2aa0c04b4d/?limit=25#36ff
+                // JMRTD did not implement AA verify yet
+                val resp = service.doAA(null, null, null, rndIFD)
+                val rsa = Cipher.getInstance("RSA")
+                rsa.init(Cipher.DECRYPT_MODE, dg15File.publicKey)
+                val decrypted = rsa.doFinal(resp.response)
+
+                val md: MessageDigest
+                val trailerLen: Int
+                if ((decrypted.last().toInt() and 0xFF) == 0xBC) {
+                    // Option 1: SHA-1
+                    md = Util.getMessageDigest("SHA-1")
+                    trailerLen = 1
+                } else if ((decrypted.last().toInt() and 0xFF) == 0xCC) {
+                    // Option 2: SHA-224/256/384/512
+                    trailerLen = 2
+                    md = when (decrypted[decrypted.size - 2].toInt()) {
+                        0x38 -> Util.getMessageDigest("SHA-224")
+                        0x34 -> Util.getMessageDigest("SHA-256")
+                        0x36 -> Util.getMessageDigest("SHA-384")
+                        0x35 -> Util.getMessageDigest("SHA-512")
+                        else -> throw IllegalArgumentException()
+                    }
+                } else {
+                    throw IllegalArgumentException()
+                }
+                val m1 = Util.recoverMessage(md.digestLength, decrypted)
+                val m = m1 + rndIFD
+                val expected = md.digest(m)
+                val received = decrypted.slice(decrypted.size - md.digestLength - trailerLen..<decrypted.size - trailerLen).toByteArray()
+                if (!received.contentEquals(expected)) {
+                    Log.w(TAG, "hash mismatch, expected: " + Hex.bytesToHexString(expected) + ", actual: " + Hex.bytesToHexString(received))
+                    return
+                }
+                activeAuthSuccess = true
             } catch (e: Exception) {
                 Log.w(TAG, e)
             }
@@ -397,8 +455,14 @@ abstract class MainActivity : AppCompatActivity() {
                 } else {
                     getString(R.string.failed)
                 }
+                val activeAuthStr = if (activeAuthSuccess) {
+                    getString(R.string.pass)
+                } else {
+                    getString(R.string.failed)
+                }
                 intent.putExtra(ResultActivity.KEY_PASSIVE_AUTH, passiveAuthStr)
                 intent.putExtra(ResultActivity.KEY_CHIP_AUTH, chipAuthStr)
+                intent.putExtra(ResultActivity.KEY_ACTIVE_AUTH, activeAuthStr)
                 bitmap?.let { bitmap ->
                     if (encodePhotoToBase64) {
                         intent.putExtra(ResultActivity.KEY_PHOTO_BASE64, imageBase64)
