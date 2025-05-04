@@ -18,6 +18,8 @@
     <string name="result_nationality">Nationality</string>
     <string name="result_passive_auth">Passive Authentication</string>
     <string name="result_chip_auth">Chip Authentication</string>
+    <string name="result_save_to_gallery">Save image to gallery</string>
+    <string name="saved_to_gallery">Passport image saved to gallery</string>
 
     <string name="pass">Pass</string>
     <string name="failed">Failed</string>

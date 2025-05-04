@@ -146,6 +146,15 @@
 
         </LinearLayout>
 
+        <Button
+            android:id="@+id/output_save_to_gallery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/result_save_to_gallery"
+            android:visibility="gone" />
     </LinearLayout>
 
 </ScrollView>

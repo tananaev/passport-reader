@@ -16,9 +16,14 @@
 package com.tananaev.passportreader
 
 import android.os.Bundle
+import android.provider.MediaStore
+import android.view.View
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.drawable.toBitmap
+import com.google.android.material.snackbar.Snackbar
 
 class ResultActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,6 +39,13 @@ class ResultActivity : AppCompatActivity() {
         if (intent.hasExtra(KEY_PHOTO)) {
             @Suppress("DEPRECATION")
             findViewById<ImageView>(R.id.view_photo).setImageBitmap(intent.getParcelableExtra(KEY_PHOTO))
+            findViewById<Button>(R.id.output_save_to_gallery).visibility = View.VISIBLE
+            findViewById<Button>(R.id.output_save_to_gallery).setOnClickListener(View.OnClickListener { view ->
+                // Get ImageView bitmap
+                val imageBitmap = findViewById<ImageView>(R.id.view_photo).drawable.toBitmap()
+                @Suppress("DEPRECATION")
+                MediaStore.Images.Media.insertImage(contentResolver, imageBitmap, "passport", null)
+            })
         }
     }
 
