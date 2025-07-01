@@ -31,6 +31,7 @@ class ResultActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.output_nationality).text = intent.getStringExtra(KEY_NATIONALITY)
         findViewById<TextView>(R.id.output_passive_auth).text = intent.getStringExtra(KEY_PASSIVE_AUTH)
         findViewById<TextView>(R.id.output_chip_auth).text = intent.getStringExtra(KEY_CHIP_AUTH)
+        findViewById<TextView>(R.id.output_active_auth).text = intent.getStringExtra(KEY_ACTIVE_AUTH)
         if (intent.hasExtra(KEY_PHOTO)) {
             @Suppress("DEPRECATION")
             findViewById<ImageView>(R.id.view_photo).setImageBitmap(intent.getParcelableExtra(KEY_PHOTO))
@@ -47,5 +48,6 @@ class ResultActivity : AppCompatActivity() {
         const val KEY_PHOTO_BASE64 = "photoBase64"
         const val KEY_PASSIVE_AUTH = "passiveAuth"
         const val KEY_CHIP_AUTH = "chipAuth"
+        const val KEY_ACTIVE_AUTH = "activeAuth"
     }
 }
