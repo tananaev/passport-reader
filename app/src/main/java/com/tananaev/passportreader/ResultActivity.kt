@@ -16,14 +16,25 @@
 package com.tananaev.passportreader
 
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 class ResultActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_result)
+
+        val root = findViewById<View>(android.R.id.content)
+        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
+
         findViewById<TextView>(R.id.output_first_name).text = intent.getStringExtra(KEY_FIRST_NAME)
         findViewById<TextView>(R.id.output_last_name).text = intent.getStringExtra(KEY_LAST_NAME)
         findViewById<TextView>(R.id.output_gender).text = intent.getStringExtra(KEY_GENDER)

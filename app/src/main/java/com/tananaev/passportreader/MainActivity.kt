@@ -35,6 +35,10 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
+import androidx.core.graphics.scale
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.snackbar.Snackbar
 import com.tananaev.passportreader.ImageUtil.decodeImage
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog
@@ -71,7 +75,8 @@ import java.security.spec.MGF1ParameterSpec
 import java.security.spec.PSSParameterSpec
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 
 abstract class MainActivity : AppCompatActivity() {
 
@@ -87,6 +92,13 @@ abstract class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val root = findViewById<View>(android.R.id.content)
+        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
+
         val preferences = PreferenceManager.getDefaultSharedPreferences(this)
         val dateOfBirth = intent.getStringExtra("dateOfBirth")
         val dateOfExpiry = intent.getStringExtra("dateOfExpiry")
@@ -94,15 +106,15 @@ abstract class MainActivity : AppCompatActivity() {
         encodePhotoToBase64 = intent.getBooleanExtra("photoAsBase64", false)
         if (dateOfBirth != null) {
             PreferenceManager.getDefaultSharedPreferences(this)
-                .edit().putString(KEY_BIRTH_DATE, dateOfBirth).apply()
+                .edit { putString(KEY_BIRTH_DATE, dateOfBirth) }
         }
         if (dateOfExpiry != null) {
             PreferenceManager.getDefaultSharedPreferences(this)
-                .edit().putString(KEY_EXPIRATION_DATE, dateOfExpiry).apply()
+                .edit { putString(KEY_EXPIRATION_DATE, dateOfExpiry) }
         }
         if (passportNumber != null) {
             PreferenceManager.getDefaultSharedPreferences(this)
-                .edit().putString(KEY_PASSPORT_NUMBER, passportNumber).apply()
+                .edit { putString(KEY_PASSPORT_NUMBER, passportNumber) }
             passportNumberFromIntent = true
         }
 
@@ -121,7 +133,7 @@ abstract class MainActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable) {
                 PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
-                    .edit().putString(KEY_PASSPORT_NUMBER, s.toString()).apply()
+                    .edit { putString(KEY_PASSPORT_NUMBER, s.toString()) }
             }
         })
 
@@ -317,8 +329,8 @@ abstract class MainActivity : AppCompatActivity() {
                 val dg1Hash = digest.digest(dg1File.encoded)
                 val dg2Hash = digest.digest(dg2File.encoded)
 
-                if (Arrays.equals(dg1Hash, dataHashes[1]) && Arrays.equals(dg2Hash, dataHashes[2])
-                    && (!chipAuthSucceeded || Arrays.equals(dg14Hash, dataHashes[14]))) {
+                if (dg1Hash.contentEquals(dataHashes[1]) && dg2Hash.contentEquals(dataHashes[2])
+                    && (!chipAuthSucceeded || dg14Hash.contentEquals(dataHashes[14]))) {
 
                     val asn1InputStream = ASN1InputStream(assets.open("masterList"))
                     val keystore = KeyStore.getInstance(KeyStore.getDefaultType())
@@ -408,7 +420,7 @@ abstract class MainActivity : AppCompatActivity() {
                         val targetWidth = (bitmap.width * ratio).toInt()
                         intent.putExtra(
                             ResultActivity.KEY_PHOTO,
-                            Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, false)
+                            bitmap.scale(targetWidth, targetHeight, false)
                         )
                     }
                 }
@@ -451,7 +463,7 @@ abstract class MainActivity : AppCompatActivity() {
     private fun saveDate(editText: EditText, year: Int, monthOfYear: Int, dayOfMonth: Int, preferenceKey: String) {
         val value = String.format(Locale.US, "%d-%02d-%02d", year, monthOfYear + 1, dayOfMonth)
         PreferenceManager.getDefaultSharedPreferences(this)
-            .edit().putString(preferenceKey, value).apply()
+            .edit { putString(preferenceKey, value) }
         editText.setText(value)
     }
 
