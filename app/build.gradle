@@ -12,8 +12,8 @@ android {
         applicationId 'com.tananaev.passportreader'
         minSdkVersion 23
         targetSdkVersion 36
-        versionCode 20
-        versionName '3.1'
+        versionCode 21
+        versionName '3.2'
         multiDexEnabled = true
     }
     namespace 'com.tananaev.passportreader'
