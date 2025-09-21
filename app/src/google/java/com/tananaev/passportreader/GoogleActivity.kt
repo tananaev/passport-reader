@@ -9,8 +9,9 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.analytics.analytics
+import com.google.firebase.Firebase
+import androidx.core.content.edit
 
 class GoogleActivity : MainActivity() {
     private lateinit var firebaseAnalytics: FirebaseAnalytics
@@ -43,14 +44,14 @@ class GoogleActivity : MainActivity() {
         val preferences = PreferenceManager.getDefaultSharedPreferences(this)
         if (!preferences.getBoolean("ratingShown", false)) {
             val openTimes = preferences.getInt("openTimes", 0) + 1
-            preferences.edit().putInt("openTimes", openTimes).apply()
+            preferences.edit { putInt("openTimes", openTimes) }
             if (openTimes >= 5) {
                 val reviewManager = ReviewManagerFactory.create(this)
                 reviewManager.requestReviewFlow().addOnCompleteListener { infoTask ->
                     if (infoTask.isSuccessful) {
                         val flow = reviewManager.launchReviewFlow(this, infoTask.result)
                         flow.addOnCompleteListener {
-                            preferences.edit().putBoolean("ratingShown", true).apply()
+                            preferences.edit { putBoolean("ratingShown", true) }
                         }
                     }
                 }
