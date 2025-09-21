@@ -18,19 +18,16 @@ package com.tananaev.passportreader
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import com.gemalto.jp2.JP2Decoder
 import org.jnbis.WsqDecoder
 import java.io.InputStream
 
 object ImageUtil {
 
-    fun decodeImage(context: Context?, mimeType: String, inputStream: InputStream?): Bitmap {
-        return if (mimeType.equals("image/jp2", ignoreCase = true) || mimeType.equals(
-                "image/jpeg2000",
-                ignoreCase = true
-            )
+    fun decodeImage(mimeType: String, inputStream: InputStream?): Bitmap? {
+        return if (mimeType.equals("image/jp2", ignoreCase = true)
+            || mimeType.equals("image/jpeg2000", ignoreCase = true)
         ) {
-            JP2Decoder(inputStream).decode()
+            null // not supported currently
         } else if (mimeType.equals("image/x-wsq", ignoreCase = true)) {
             val wsqDecoder = WsqDecoder()
             val bitmap = wsqDecoder.decode(inputStream)

@@ -289,7 +289,7 @@ abstract class MainActivity : AppCompatActivity() {
                     val buffer = ByteArray(imageLength)
                     dataInputStream.readFully(buffer, 0, imageLength)
                     val inputStream: InputStream = ByteArrayInputStream(buffer, 0, imageLength)
-                    bitmap = decodeImage(this@MainActivity, faceImageInfo.mimeType, inputStream)
+                    bitmap = decodeImage(faceImageInfo.mimeType, inputStream)
                     imageBase64 = Base64.encodeToString(buffer, Base64.DEFAULT)
                 }
             } catch (e: Exception) {
