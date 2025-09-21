@@ -154,7 +154,7 @@ abstract class MainActivity : AppCompatActivity() {
                 c[Calendar.DAY_OF_MONTH],
             )
             dialog.showYearPickerFirst(true)
-            fragmentManager.beginTransaction().add(dialog, null).commit()
+            supportFragmentManager.beginTransaction().add(dialog, null).commit()
         }
 
         birthDateView.setOnClickListener {
@@ -168,7 +168,7 @@ abstract class MainActivity : AppCompatActivity() {
                 c[Calendar.DAY_OF_MONTH],
             )
             dialog.showYearPickerFirst(true)
-            fragmentManager.beginTransaction().add(dialog, null).commit()
+            supportFragmentManager.beginTransaction().add(dialog, null).commit()
         }
     }
 
