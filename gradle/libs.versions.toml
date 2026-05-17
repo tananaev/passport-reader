@@ -1,0 +1,40 @@
+[versions]
+agp = "8.13.0"
+kotlin = "2.2.20"
+googleServices = "4.4.3"
+crashlyticsGradle = "3.0.6"
+material = "1.13.0"
+coreKtx = "1.17.0"
+materialdatetimepicker = "4.2.3"
+jmrtd = "0.7.18"
+scuba = "0.0.18"
+spongycastle = "1.54.0.0"
+jnbis = "1.1.0"
+bcpkixJdk15on = "1.65"
+commonsIo = "2.20.0"
+firebaseBom = "34.3.0"
+playServicesAds = "24.6.0"
+reviewKtx = "2.0.2"
+
+[libraries]
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+materialdatetimepicker = { group = "com.wdullaer", name = "materialdatetimepicker", version.ref = "materialdatetimepicker" }
+jmrtd = { group = "org.jmrtd", name = "jmrtd", version.ref = "jmrtd" }
+scuba-sc-android = { group = "net.sf.scuba", name = "scuba-sc-android", version.ref = "scuba" }
+spongycastle-prov = { group = "com.madgag.spongycastle", name = "prov", version.ref = "spongycastle" }
+jnbis = { group = "com.github.mhshams", name = "jnbis", version.ref = "jnbis" }
+# do not update
+bcpkix-jdk15on = { group = "org.bouncycastle", name = "bcpkix-jdk15on", version.ref = "bcpkixJdk15on" }
+commons-io = { group = "commons-io", name = "commons-io", version.ref = "commonsIo" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
+play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
+play-review-ktx = { group = "com.google.android.play", name = "review-ktx", version.ref = "reviewKtx" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlyticsGradle" }
