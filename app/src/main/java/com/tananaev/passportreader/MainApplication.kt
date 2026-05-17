@@ -15,11 +15,11 @@
  */
 package com.tananaev.passportreader
 
-import androidx.multidex.MultiDexApplication
+import android.app.Application
 import org.spongycastle.jce.provider.BouncyCastleProvider
 import java.security.Security
 
-class MainApplication : MultiDexApplication() {
+class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         Security.insertProviderAt(BouncyCastleProvider(), 1)

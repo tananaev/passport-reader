@@ -1,20 +1,18 @@
 plugins {
     id 'com.android.application'
-    id 'kotlin-android'
+    id 'org.jetbrains.kotlin.android'
     id 'com.google.gms.google-services'
     id 'com.google.firebase.crashlytics'
 }
 
 android {
-    compileSdkVersion 36
-    ndkVersion '23.1.7779620'
+    compileSdk 36
     defaultConfig {
         applicationId 'com.tananaev.passportreader'
         minSdkVersion 23
         targetSdkVersion 36
         versionCode 22
         versionName '3.3'
-        multiDexEnabled = true
     }
     namespace 'com.tananaev.passportreader'
 
@@ -46,8 +44,6 @@ android {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'com.google.android.material:material:1.13.0'
     implementation 'androidx.core:core-ktx:1.17.0'
     implementation 'com.wdullaer:materialdatetimepicker:4.2.3'
