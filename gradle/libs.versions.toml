@@ -13,7 +13,7 @@ jnbis = "1.1.0"
 bcpkixJdk15on = "1.65"
 commonsIo = "2.20.0"
 firebaseBom = "34.3.0"
-playServicesAds = "24.6.0"
+playServicesAds = "25.2.0"
 reviewKtx = "2.0.2"
 
 [libraries]
