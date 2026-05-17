@@ -2,7 +2,7 @@
 
 [![Get it on Google Play](http://www.tananaev.com/badges/google-play.svg)](https://play.google.com/store/apps/details?id=com.tananaev.passportreader) [![Get it on F-Droid](http://www.tananaev.com/badges/f-droid.svg)](https://f-droid.org/packages/com.tananaev.passportreader)
 
-Android app that uses the NFC chip to communicate with an electronic passport.
+e-Passport NFC Reader is an Android app for reading electronic passports through your device's NFC chip. It communicates with the passport's embedded chip to retrieve the data stored on it, which can be useful for identity verification and exploring the contents of biometric travel documents.
 
 ## Contacts
 
