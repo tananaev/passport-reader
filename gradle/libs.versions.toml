@@ -12,7 +12,7 @@ commons-io = "commons-io:commons-io:2.22.0"
 firebase-bom = "com.google.firebase:firebase-bom:34.3.0"
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
-play-services-ads = "com.google.android.gms:play-services-ads:25.2.0"
+play-services-ads = "com.google.android.gms:play-services-ads:25.3.0"
 play-review-ktx = "com.google.android.play:review-ktx:2.0.2"
 
 [plugins]
