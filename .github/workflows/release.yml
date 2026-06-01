@@ -30,13 +30,13 @@ jobs:
           KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: ./gradlew :app:assembleGoogleRelease :app:assembleRegularRelease
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: google-apk
           path: app/build/outputs/apk/google/release/app-google-release.apk
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: regular-apk
           path: app/build/outputs/apk/regular/release/app-regular-release.apk
@@ -74,7 +74,7 @@ jobs:
             adb pull /sdcard/launch.png launch.png
             adb shell pidof com.tananaev.passportreader > /dev/null || { echo "App process not running after launch — crashed."; exit 1; }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: launch-screenshot
           path: launch.png
