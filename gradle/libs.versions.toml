@@ -19,4 +19,4 @@ play-review-ktx = "com.google.android.play:review-ktx:2.0.2"
 android-application = { id = "com.android.application", version = "8.13.0" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version = "2.2.20" }
 google-services = { id = "com.google.gms.google-services", version = "4.4.3" }
-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version = "3.0.6" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version = "3.0.7" }
