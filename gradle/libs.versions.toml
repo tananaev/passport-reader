@@ -1,5 +1,5 @@
 [libraries]
-material = "com.google.android.material:material:1.13.0"
+material = "com.google.android.material:material:1.14.0"
 androidx-core-ktx = "androidx.core:core-ktx:1.18.0"
 materialdatetimepicker = "com.wdullaer:materialdatetimepicker:4.2.3"
 jmrtd = "org.jmrtd:jmrtd:0.7.18"
