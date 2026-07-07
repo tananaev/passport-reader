@@ -55,6 +55,7 @@ import org.jmrtd.BACKeySpec
 import org.jmrtd.PassportService
 import org.jmrtd.lds.CardAccessFile
 import org.jmrtd.lds.ChipAuthenticationPublicKeyInfo
+import org.jmrtd.lds.ChipAuthenticationInfo
 import org.jmrtd.lds.PACEInfo
 import org.jmrtd.lds.SODFile
 import org.jmrtd.lds.SecurityInfo
@@ -307,16 +308,35 @@ abstract class MainActivity : AppCompatActivity() {
                 dg14Encoded = IOUtils.toByteArray(dg14In)
                 val dg14InByte = ByteArrayInputStream(dg14Encoded)
                 dg14File = DG14File(dg14InByte)
-                val dg14FileSecurityInfo = dg14File.securityInfos
-                for (securityInfo: SecurityInfo in dg14FileSecurityInfo) {
-                    if (securityInfo is ChipAuthenticationPublicKeyInfo) {
+
+                // DG14 may carry ChipAuthenticationInfo (with the actual CA protocol
+                // OID + keyId) alongside ChipAuthenticationPublicKeyInfo (with the
+                // public key + keyId). The previous code hard-coded the CA OID to
+                // ID_CA_ECDH_AES_CBC_CMAC_256, which fails on passports advertising
+                // a different variant (3DES, AES-128/192, etc.). Match the two by
+                // keyId to use the chip's real CA OID, and try each available key.
+                val caInfos: List<ChipAuthenticationInfo> =
+                    dg14File.chipAuthenticationInfos
+                val pkInfos = dg14File.chipAuthenticationPublicKeyInfos
+
+                for (pkInfo in pkInfos) {
+                    try {
+                        val caInfo = caInfos.firstOrNull { info ->
+                            info.keyId == pkInfo.keyId || info.keyId == null
+                        }
+                        val caOID = caInfo?.objectIdentifier
+                            ?: ChipAuthenticationPublicKeyInfo.ID_CA_ECDH_AES_CBC_CMAC_256
+
                         service.doEACCA(
-                            securityInfo.keyId,
-                            ChipAuthenticationPublicKeyInfo.ID_CA_ECDH_AES_CBC_CMAC_256,
-                            securityInfo.objectIdentifier,
-                            securityInfo.subjectPublicKey,
+                            pkInfo.keyId,
+                            caOID,
+                            pkInfo.objectIdentifier,
+                            pkInfo.subjectPublicKey,
                         )
                         chipAuthSucceeded = true
+                        break // secure messaging re-established on success
+                    } catch (e: Exception) {
+                        Log.w(TAG, "CA attempt failed for keyId=${pkInfo.keyId}: $e")
                     }
                 }
             } catch (e: Exception) {
@@ -368,15 +388,25 @@ abstract class MainActivity : AppCompatActivity() {
                     pkixParameters.isRevocationEnabled = false
                     val cpv = CertPathValidator.getInstance(CertPathValidator.getDefaultType())
                     cpv.validate(cp, pkixParameters)
-                    var sodDigestEncryptionAlgorithm = sodFile.docSigningCertificate.sigAlgName
-                    var isSSA = false
-                    if ((sodDigestEncryptionAlgorithm == "SSAwithRSA/PSS")) {
-                        sodDigestEncryptionAlgorithm = "SHA256withRSA/PSS"
-                        isSSA = true
+                    // Source the signature algorithm from the SOD's SignerInfo (the algorithm
+                    // actually used to sign the SOD), NOT from the Document Signer certificate.
+                    // These can differ; using the wrong one yields a false "Failed".
+                    val sodDigestAlgorithm = sodFile.digestAlgorithm
+                    val sodDigestEncryptionAlgorithm = sodFile.digestEncryptionAlgorithm
+                    val isPSS = sodDigestEncryptionAlgorithm.equals("SSAwithRSA/PSS", ignoreCase = true)
+                    val jcaAlgorithm = if (isPSS) {
+                        val h = if (sodDigestAlgorithm.equals("SHA-1", ignoreCase = true)) "SHA1" else "SHA256"
+                        "${h}withRSA/PSS"
+                    } else {
+                        sodDigestEncryptionAlgorithm
                     }
-                    val sign = Signature.getInstance(sodDigestEncryptionAlgorithm)
-                    if (isSSA) {
-                        sign.setParameter(PSSParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, 32, 1))
+                    val sign = Signature.getInstance(jcaAlgorithm)
+                    if (isPSS) {
+                        val pssDigest = if (sodDigestAlgorithm.equals("SHA-1", ignoreCase = true)) "SHA-1" else "SHA-256"
+                        val saltLen = MessageDigest.getInstance(pssDigest).digestLength
+                        sign.setParameter(
+                            PSSParameterSpec(pssDigest, "MGF1", MGF1ParameterSpec.SHA256, saltLen, 1),
+                        )
                     }
                     sign.initVerify(sodFile.docSigningCertificate)
                     sign.update(sodFile.eContent)
