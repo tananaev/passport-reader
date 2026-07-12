@@ -44,6 +44,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.tananaev.passportreader.ImageUtil.decodeImage
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog
 import net.sf.scuba.smartcards.CardService
+import net.sf.scuba.smartcards.CardServiceException
 import org.apache.commons.io.IOUtils
 import org.bouncycastle.asn1.ASN1InputStream
 import org.bouncycastle.asn1.ASN1Primitive
@@ -322,7 +323,7 @@ abstract class MainActivity : AppCompatActivity() {
                         )
                         chipAuthSucceeded = true
                         break
-                    } catch (e: Exception) {
+                    } catch (e: CardServiceException) {
                         Log.w(TAG, "CA attempt failed for keyId=${pkInfo.keyId}: $e")
                     }
                 }
@@ -377,11 +378,16 @@ abstract class MainActivity : AppCompatActivity() {
                     cpv.validate(cp, pkixParameters)
                     val sodDigestEncryptionAlgorithm = sodFile.digestEncryptionAlgorithm
                     val isPSS = sodDigestEncryptionAlgorithm.equals("SSAwithRSA/PSS", ignoreCase = true)
-                    val pssDigest = if (sodFile.digestAlgorithm.equals("SHA-1", ignoreCase = true)) "SHA-1" else "SHA-256"
-                    val jcaAlgorithm = if (isPSS) "${pssDigest.replace("-", "")}withRSA/PSS" else sodDigestEncryptionAlgorithm
+                    val isSha1 = sodFile.digestAlgorithm.equals("SHA-1", ignoreCase = true)
+                    val jcaAlgorithm = when {
+                        !isPSS -> sodDigestEncryptionAlgorithm
+                        isSha1 -> "SHA1withRSA/PSS"
+                        else -> "SHA256withRSA/PSS"
+                    }
                     val sign = Signature.getInstance(jcaAlgorithm)
                     if (isPSS) {
-                        val mgf1Digest = if (pssDigest == "SHA-1") MGF1ParameterSpec.SHA1 else MGF1ParameterSpec.SHA256
+                        val pssDigest = if (isSha1) "SHA-1" else "SHA-256"
+                        val mgf1Digest = if (isSha1) MGF1ParameterSpec.SHA1 else MGF1ParameterSpec.SHA256
                         val saltLen = MessageDigest.getInstance(pssDigest).digestLength
                         sign.setParameter(PSSParameterSpec(pssDigest, "MGF1", mgf1Digest, saltLen, 1))
                     }
