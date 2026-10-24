@@ -35,12 +35,14 @@ jobs:
           name: google-apk
           path: app/build/outputs/apk/google/release/app-google-release.apk
           if-no-files-found: error
+          retention-days: 1
 
       - uses: actions/upload-artifact@v7
         with:
           name: regular-apk
           path: app/build/outputs/apk/regular/release/app-regular-release.apk
           if-no-files-found: error
+          retention-days: 1
 
   smoke-test:
     needs: build
