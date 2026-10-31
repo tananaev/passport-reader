@@ -44,6 +44,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.tananaev.passportreader.ImageUtil.decodeImage
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog
 import net.sf.scuba.smartcards.CardService
+import net.sf.scuba.smartcards.CardServiceException
 import org.apache.commons.io.IOUtils
 import org.bouncycastle.asn1.ASN1InputStream
 import org.bouncycastle.asn1.ASN1Primitive
@@ -307,16 +308,23 @@ abstract class MainActivity : AppCompatActivity() {
                 dg14Encoded = IOUtils.toByteArray(dg14In)
                 val dg14InByte = ByteArrayInputStream(dg14Encoded)
                 dg14File = DG14File(dg14InByte)
-                val dg14FileSecurityInfo = dg14File.securityInfos
-                for (securityInfo: SecurityInfo in dg14FileSecurityInfo) {
-                    if (securityInfo is ChipAuthenticationPublicKeyInfo) {
+
+                for (pkInfo in dg14File.chipAuthenticationPublicKeyInfos) {
+                    try {
+                        val caOID = dg14File.chipAuthenticationInfos.firstOrNull {
+                            it.keyId == pkInfo.keyId || it.keyId == null
+                        }?.objectIdentifier ?: ChipAuthenticationPublicKeyInfo.ID_CA_ECDH_AES_CBC_CMAC_256
+
                         service.doEACCA(
-                            securityInfo.keyId,
-                            ChipAuthenticationPublicKeyInfo.ID_CA_ECDH_AES_CBC_CMAC_256,
-                            securityInfo.objectIdentifier,
-                            securityInfo.subjectPublicKey,
+                            pkInfo.keyId,
+                            caOID,
+                            pkInfo.objectIdentifier,
+                            pkInfo.subjectPublicKey,
                         )
                         chipAuthSucceeded = true
+                        break
+                    } catch (e: CardServiceException) {
+                        Log.w(TAG, "CA attempt failed for keyId=${pkInfo.keyId}: $e")
                     }
                 }
             } catch (e: Exception) {
@@ -368,15 +376,20 @@ abstract class MainActivity : AppCompatActivity() {
                     pkixParameters.isRevocationEnabled = false
                     val cpv = CertPathValidator.getInstance(CertPathValidator.getDefaultType())
                     cpv.validate(cp, pkixParameters)
-                    var sodDigestEncryptionAlgorithm = sodFile.docSigningCertificate.sigAlgName
-                    var isSSA = false
-                    if ((sodDigestEncryptionAlgorithm == "SSAwithRSA/PSS")) {
-                        sodDigestEncryptionAlgorithm = "SHA256withRSA/PSS"
-                        isSSA = true
+                    val sodDigestEncryptionAlgorithm = sodFile.digestEncryptionAlgorithm
+                    val isPSS = sodDigestEncryptionAlgorithm.equals("SSAwithRSA/PSS", ignoreCase = true)
+                    val isSha1 = sodFile.digestAlgorithm.equals("SHA-1", ignoreCase = true)
+                    val jcaAlgorithm = when {
+                        !isPSS -> sodDigestEncryptionAlgorithm
+                        isSha1 -> "SHA1withRSA/PSS"
+                        else -> "SHA256withRSA/PSS"
                     }
-                    val sign = Signature.getInstance(sodDigestEncryptionAlgorithm)
-                    if (isSSA) {
-                        sign.setParameter(PSSParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, 32, 1))
+                    val sign = Signature.getInstance(jcaAlgorithm)
+                    if (isPSS) {
+                        val pssDigest = if (isSha1) "SHA-1" else "SHA-256"
+                        val mgf1Digest = if (isSha1) MGF1ParameterSpec.SHA1 else MGF1ParameterSpec.SHA256
+                        val saltLen = MessageDigest.getInstance(pssDigest).digestLength
+                        sign.setParameter(PSSParameterSpec(pssDigest, "MGF1", mgf1Digest, saltLen, 1))
                     }
                     sign.initVerify(sodFile.docSigningCertificate)
                     sign.update(sodFile.eContent)
